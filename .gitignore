@@ -75,4 +75,5 @@ yarn-error.log
 !.yarn/versions
 
 # Variables de entorno
-.envandroid-local.cmd
+.env
+android-local.cmd
