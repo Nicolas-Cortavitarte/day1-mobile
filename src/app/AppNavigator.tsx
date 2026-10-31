@@ -1,32 +1,30 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet, View } from 'react-native';
 
-import { Day1Text } from '@/components/atoms/Day1Text';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useSession } from '@/features/auth/AuthProvider';
+import { HomeScreen } from '@/screens/HomeScreen';
+import { SignInScreen } from '@/screens/SignInScreen';
+import { SignUpScreen } from '@/screens/SignUpScreen';
+import type { RootStackParamList } from './navigation-types';
 
-const Stack = createNativeStackNavigator();
-
-function PlaceholderScreen() {
-  const colors = useTheme();
-  return (
-    <View style={[styles.container, { backgroundColor: colors.backgroundDefault }]}>
-      <Day1Text variant="heading28">Day1 🚀</Day1Text>
-      <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
-        Navegación y tokens de tema funcionando.
-      </Day1Text>
-    </View>
-  );
-}
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
+  const { session, isLoading } = useSession();
+
+  if (isLoading) {
+    return null;
+  }
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Placeholder" component={PlaceholderScreen} />
+      {session ? (
+        <Stack.Screen name="Home" component={HomeScreen} />
+      ) : (
+        <>
+          <Stack.Screen name="SignIn" component={SignInScreen} />
+          <Stack.Screen name="SignUp" component={SignUpScreen} />
+        </>
+      )}
     </Stack.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: Spacing[12] },
-});
