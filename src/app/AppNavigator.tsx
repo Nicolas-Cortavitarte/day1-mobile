@@ -7,6 +7,8 @@ import { ResetPasswordScreen } from '@/screens/ResetPasswordScreen';
 import { SignInScreen } from '@/screens/SignInScreen';
 import { SignUpScreen } from '@/screens/SignUpScreen';
 import { ActivityDetailScreen } from '@/screens/ActivityDetailScreen';
+import { EditActivityScreen } from '@/screens/EditActivityScreen';
+import { RescheduleActivityScreen } from '@/screens/RescheduleActivityScreen';
 import { MainTabs } from './MainTabs';
 import type { RootStackParamList } from './navigation-types';
 
@@ -28,6 +30,8 @@ export function AppNavigator() {
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen name="CreateActivity" component={CreateActivityScreen} options={{ presentation: 'modal' }} />
           <Stack.Screen name="ActivityDetail" component={ActivityDetailScreen} />
+          <Stack.Screen name='EditActivity' component={EditActivityScreen} />
+          <Stack.Screen name='RescheduleActivity' component={RescheduleActivityScreen} />
         </>
       ) : (
         <>
