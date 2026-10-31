@@ -4,4 +4,5 @@ export type RootStackParamList = {
   ForgotPassword: undefined;
   ResetPassword: undefined;
   Home: undefined;
+  CreateActivity: undefined;
 };
