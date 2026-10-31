@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { useSession } from '@/features/auth/AuthProvider';
+import { CreateActivityScreen } from '@/screens/CreateActivityScreen';
 import { ForgotPasswordScreen } from '@/screens/ForgotPasswordScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { ResetPasswordScreen } from '@/screens/ResetPasswordScreen';
@@ -22,7 +23,10 @@ export function AppNavigator() {
       {isPasswordRecovery ? (
         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
       ) : session ? (
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="CreateActivity" component={CreateActivityScreen} options={{ presentation: 'modal' }} />
+        </>
       ) : (
         <>
           <Stack.Screen name="SignIn" component={SignInScreen} />
