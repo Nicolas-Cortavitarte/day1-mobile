@@ -3,10 +3,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSession } from '@/features/auth/AuthProvider';
 import { CreateActivityScreen } from '@/screens/CreateActivityScreen';
 import { ForgotPasswordScreen } from '@/screens/ForgotPasswordScreen';
-import { HomeScreen } from '@/screens/HomeScreen';
 import { ResetPasswordScreen } from '@/screens/ResetPasswordScreen';
 import { SignInScreen } from '@/screens/SignInScreen';
 import { SignUpScreen } from '@/screens/SignUpScreen';
+import { MainTabs } from './MainTabs';
 import type { RootStackParamList } from './navigation-types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -24,7 +24,7 @@ export function AppNavigator() {
         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
       ) : session ? (
         <>
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen name="CreateActivity" component={CreateActivityScreen} options={{ presentation: 'modal' }} />
         </>
       ) : (
