@@ -42,6 +42,7 @@ export function HomeScreen({ navigation }: Props) {
           activities={activities}
           categories={categories}
           onToggleComplete={toggleComplete}
+          onPressActivity={(activity) => navigation.navigate('ActivityDetail', { activity })}
           refreshControl={
             <RefreshControl refreshing={isLoading} onRefresh={reload} tintColor={colors.actionPrimary} />
           }
