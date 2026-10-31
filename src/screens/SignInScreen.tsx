@@ -73,6 +73,12 @@ export function SignInScreen({ navigation }: Props) {
           variant="ghost"
           onPress={() => navigation.navigate('SignUp')}
         />
+
+        <Day1Button
+          label="Olvidé mi contraseña"
+          variant="ghost"
+          onPress={() => navigation.navigate('ForgotPassword')}
+        />
       </View>
     </SafeAreaView>
   );
