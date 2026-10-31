@@ -4,22 +4,25 @@ import { useTheme } from '@/hooks/use-theme';
 import { Radius, Spacing } from '@/constants/theme';
 import type { Activity, Category } from '@/features/activities/types';
 import { Day1CategoryDot } from '../atoms/Day1CategoryDot';
+import { Day1Checkbox } from '../atoms/Day1Checkbox';
 import { Day1Text } from '../atoms/Day1Text';
 
 type Day1ActivityRowProps = {
   activity: Activity;
   category: Category | undefined;
+  onPress: () => void;
   onToggleComplete: () => void;
 };
 
-export function Day1ActivityRow({ activity, category, onToggleComplete }: Day1ActivityRowProps) {
+export function Day1ActivityRow({ activity, category, onPress, onToggleComplete }: Day1ActivityRowProps) {
   const colors = useTheme();
   const isCompleted = !!activity.completedAt;
 
   return (
     <Pressable
-      onPress={onToggleComplete}
+      onPress={onPress}
       style={[styles.row, { backgroundColor: colors.surfaceCard, borderColor: colors.borderSubtle }]}>
+      <Day1Checkbox checked={isCompleted} onPress={onToggleComplete} />
       <Day1CategoryDot color={category?.color ?? colors.borderControl} />
       <View style={styles.texts}>
         <Day1Text

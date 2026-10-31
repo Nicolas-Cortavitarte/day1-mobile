@@ -1,16 +1,17 @@
-import { FlatList, StyleSheet, View} from 'react-native';
+import type { ReactElement } from 'react';
+import { FlatList, StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 import type { Activity, Category } from '@/features/activities/types';
 import { Day1Text } from '../atoms/Day1Text';
 import { Day1ActivityRow } from '../molecules/Day1ActivityRow';
-import { ReactElement } from 'react';
 
 type Day1ActivityListProps = {
   activities: Activity[];
   categories: Category[];
   onToggleComplete: (activity: Activity) => void;
+  onPressActivity: (activity: Activity) => void;
   refreshControl?: ReactElement;
 };
 
@@ -18,6 +19,7 @@ export function Day1ActivityList({
   activities,
   categories,
   onToggleComplete,
+  onPressActivity,
   refreshControl,
 }: Day1ActivityListProps) {
   const colors = useTheme();
@@ -42,6 +44,7 @@ export function Day1ActivityList({
         <Day1ActivityRow
           activity={item}
           category={categories.find((c) => c.id === item.categoryId)}
+          onPress={() => onPressActivity(item)}
           onToggleComplete={() => onToggleComplete(item)}
         />
       )}
