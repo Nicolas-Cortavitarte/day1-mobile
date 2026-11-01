@@ -12,6 +12,7 @@ import { useCategories } from '@/features/activities/useCategories';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import type { RootStackParamList } from '@/app/navigation-types';
+import { checkActivityConflicts } from '@/features/activities/checkConflicts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateActivity'>;
 
@@ -34,7 +35,7 @@ export function CreateActivityScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  async function handleCreate() {
+    async function handleCreate() {
     if (!categoryId) {
       setError('Elige una categoría.');
       return;
@@ -44,10 +45,25 @@ export function CreateActivityScreen({ navigation }: Props) {
     setError(null);
 
     try {
+      const date = todayISODate();
+
+      if (startTime && durationMinutes) {
+        const conflicts = await checkActivityConflicts({
+          date,
+          startTime,
+          durationMinutes: Number(durationMinutes),
+        });
+        if (conflicts.length > 0) {
+          setError(`Ya tienes "${conflicts[0].title}" en ese horario.`);
+          setSaving(false);
+          return;
+        }
+      }
+
       await api.post('/activities', {
         categoryId,
         title,
-        scheduledDate: todayISODate(),
+        scheduledDate: date,
         startTime: startTime || undefined,
         durationMinutes: durationMinutes ? Number(durationMinutes) : undefined,
       });

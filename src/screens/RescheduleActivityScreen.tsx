@@ -7,11 +7,20 @@ import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Spacing } from '@/constants/theme';
+import { checkActivityConflicts } from '@/features/activities/checkConflicts';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import type { RootStackParamList } from '@/app/navigation-types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RescheduleActivity'>;
+
+function todayISODate() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export function RescheduleActivityScreen({ route, navigation }: Props) {
   const colors = useTheme();
@@ -23,9 +32,30 @@ export function RescheduleActivityScreen({ route, navigation }: Props) {
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
-    setSaving(true);
     setError(null);
+
+    if (toDate < todayISODate()) {
+      setError('No puedes reprogramar una actividad a una fecha pasada.');
+      return;
+    }
+
+    setSaving(true);
+
     try {
+      if (toTime && activity.durationMinutes) {
+        const conflicts = await checkActivityConflicts({
+          date: toDate,
+          startTime: toTime,
+          durationMinutes: activity.durationMinutes,
+          excludeActivityId: activity.id,
+        });
+        if (conflicts.length > 0) {
+          setError(`Ya tienes "${conflicts[0].title}" en ese horario.`);
+          setSaving(false);
+          return;
+        }
+      }
+
       await api.patch(`/activities/${activity.id}/reschedule`, {
         toDate,
         toTime: toTime || undefined,
