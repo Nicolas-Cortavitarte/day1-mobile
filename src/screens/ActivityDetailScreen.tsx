@@ -8,6 +8,7 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import type { RootStackParamList } from '@/app/navigation-types';
+import { useCategories } from '@/features/activities/useCategories';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ActivityDetail'>;
 
@@ -15,6 +16,8 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
   const colors = useTheme();
   const { activity } = route.params;
   const isCompleted = !!activity.completedAt;
+  const { categories } = useCategories();
+  const isGymActivity = categories.find((c) => c.id === activity.categoryId)?.key === 'gym';
 
   function confirmDelete() {
     Alert.alert('Eliminar actividad', `¿Seguro que quieres eliminar "${activity.title}"?`, [
@@ -82,6 +85,13 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
         ) : null}
 
         <View style={styles.actions}>
+          {isGymActivity ? (
+            <Day1Button
+              label="Registrar sesión"
+              variant="primary"
+              onPress={() => navigation.navigate('WorkoutSession', { activityId: activity.id, activityTitle: activity.title })}
+            />
+          ) : null}
           <Day1Button label="Editar" variant="secondary" onPress={() => navigation.navigate('EditActivity', { activity })} />
           <Day1Button
             label="Reprogramar"
