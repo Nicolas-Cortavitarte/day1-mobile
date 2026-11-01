@@ -7,14 +7,17 @@ import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1CategoryPicker } from '@/components/molecules/Day1CategoryPicker';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
+import { Day1WeekdayPicker } from '@/components/molecules/Day1WeekdayPicker';
 import { Spacing } from '@/constants/theme';
+import { checkActivityConflicts } from '@/features/activities/checkConflicts';
 import { useCategories } from '@/features/activities/useCategories';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import type { RootStackParamList } from '@/app/navigation-types';
-import { checkActivityConflicts } from '@/features/activities/checkConflicts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateActivity'>;
+
+type Frequency = 'DAILY' | 'WEEKLY';
 
 function todayISODate() {
   const now = new Date();
@@ -35,9 +38,24 @@ export function CreateActivityScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-    async function handleCreate() {
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [frequency, setFrequency] = useState<Frequency>('DAILY');
+  const [intervalCount, setIntervalCount] = useState('1');
+  const [daysOfWeek, setDaysOfWeek] = useState<number[]>([]);
+  const [endDate, setEndDate] = useState('');
+
+  function toggleDay(day: number) {
+    setDaysOfWeek((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
+  }
+
+  async function handleCreate() {
     if (!categoryId) {
       setError('Elige una categoría.');
+      return;
+    }
+
+    if (isRecurring && frequency === 'WEEKLY' && daysOfWeek.length === 0) {
+      setError('Elige al menos un día de la semana.');
       return;
     }
 
@@ -47,7 +65,7 @@ export function CreateActivityScreen({ navigation }: Props) {
     try {
       const date = todayISODate();
 
-      if (startTime && durationMinutes) {
+      if (!isRecurring && startTime && durationMinutes) {
         const conflicts = await checkActivityConflicts({
           date,
           startTime,
@@ -60,13 +78,28 @@ export function CreateActivityScreen({ navigation }: Props) {
         }
       }
 
-      await api.post('/activities', {
-        categoryId,
-        title,
-        scheduledDate: date,
-        startTime: startTime || undefined,
-        durationMinutes: durationMinutes ? Number(durationMinutes) : undefined,
-      });
+      if (isRecurring) {
+        await api.post('/activity-recurrences', {
+          categoryId,
+          title,
+          startTime: startTime || undefined,
+          durationMinutes: durationMinutes ? Number(durationMinutes) : undefined,
+          frequency,
+          intervalCount: Number(intervalCount) || 1,
+          daysOfWeek: frequency === 'WEEKLY' ? daysOfWeek : undefined,
+          startDate: date,
+          endDate: endDate || undefined,
+        });
+      } else {
+        await api.post('/activities', {
+          categoryId,
+          title,
+          scheduledDate: date,
+          startTime: startTime || undefined,
+          durationMinutes: durationMinutes ? Number(durationMinutes) : undefined,
+        });
+      }
+
       navigation.goBack();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear la actividad.');
@@ -89,11 +122,7 @@ export function CreateActivityScreen({ navigation }: Props) {
             Cargando categorías...
           </Day1Text>
         ) : (
-          <Day1CategoryPicker
-            categories={categories}
-            selectedCategoryId={categoryId}
-            onSelect={setCategoryId}
-          />
+          <Day1CategoryPicker categories={categories} selectedCategoryId={categoryId} onSelect={setCategoryId} />
         )}
 
         <Day1TextField label="Título" value={title} onChangeText={setTitle} placeholder="Ej: Repasar inglés" />
@@ -114,6 +143,48 @@ export function CreateActivityScreen({ navigation }: Props) {
           keyboardType="number-pad"
           editable={!!startTime}
         />
+
+        <Day1Button
+          label={isRecurring ? '🔁 Se repite' : 'Repetir esta actividad'}
+          variant={isRecurring ? 'secondary' : 'ghost'}
+          onPress={() => setIsRecurring((prev) => !prev)}
+        />
+
+        {isRecurring ? (
+          <View style={styles.recurrenceBox}>
+            <View style={styles.frequencyRow}>
+              <Day1Button
+                label="Diaria"
+                variant={frequency === 'DAILY' ? 'primary' : 'secondary'}
+                onPress={() => setFrequency('DAILY')}
+              />
+              <Day1Button
+                label="Semanal"
+                variant={frequency === 'WEEKLY' ? 'primary' : 'secondary'}
+                onPress={() => setFrequency('WEEKLY')}
+              />
+            </View>
+
+            {frequency === 'WEEKLY' ? (
+              <Day1WeekdayPicker selectedDays={daysOfWeek} onToggleDay={toggleDay} />
+            ) : null}
+
+            <Day1TextField
+              label={frequency === 'DAILY' ? 'Repetir cada cuántos días' : 'Repetir cada cuántas semanas'}
+              value={intervalCount}
+              onChangeText={setIntervalCount}
+              placeholder="1"
+              keyboardType="number-pad"
+            />
+
+            <Day1TextField
+              label="Fecha de fin (opcional, YYYY-MM-DD)"
+              value={endDate}
+              onChangeText={setEndDate}
+              placeholder="Sin fecha de fin = repite por 60 días"
+            />
+          </View>
+        ) : null}
 
         {error ? (
           <Day1Text variant="labelRegular14" color={colors.statusError}>
@@ -136,4 +207,6 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   content: { flex: 1, padding: Spacing[16], gap: Spacing[16] },
   header: { flexDirection: 'row', justifyContent: 'flex-end' },
+  recurrenceBox: { gap: Spacing[12] },
+  frequencyRow: { flexDirection: 'row', gap: Spacing[8] },
 });
