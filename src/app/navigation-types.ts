@@ -21,6 +21,8 @@ export type RootStackParamList = {
   ActivityDetail: { activity: Activity };
   EditActivity: { activity: Activity };
   RescheduleActivity: { activity: Activity };
+  WorkoutSession: { activityId: string; activityTitle: string };
+  ExerciseProgress: { exerciseId: string; exerciseName: string };
 };
 
 export type MainTabScreenProps<T extends keyof MainTabParamList> = CompositeScreenProps<
