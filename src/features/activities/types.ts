@@ -1,6 +1,7 @@
 export type Category = {
   id: number;
-  key: string;
+  key: string | null;
+  userId: string | null;
   name: string;
   color: string;
   sortOrder: number;

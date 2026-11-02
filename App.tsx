@@ -4,6 +4,7 @@ import { StatusBar, useColorScheme } from 'react-native';
 
 import { AppNavigator } from '@/app/AppNavigator';
 import { AuthProvider } from '@/features/auth/AuthProvider';
+import { PreferencesProvider } from '@/features/profile/PreferencesProvider';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -12,9 +13,11 @@ function App() {
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <AuthProvider>
-        <NavigationContainer>
-          <AppNavigator />
-        </NavigationContainer>
+        <PreferencesProvider>
+          <NavigationContainer>
+            <AppNavigator />
+          </NavigationContainer>
+        </PreferencesProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );
