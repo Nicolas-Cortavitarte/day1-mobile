@@ -19,3 +19,19 @@ export type Activity = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type CategoryStat = {
+  categoryId: number;
+  categoryName: string;
+  completed: number;
+  total: number;
+};
+
+export type ActivityStats = {
+  totalCompleted: number;
+  totalScheduled: number;
+  completionRate: number;
+  currentStreak: number;
+  longestStreak: number;
+  byCategory: CategoryStat[];
+};

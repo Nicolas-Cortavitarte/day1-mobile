@@ -9,6 +9,7 @@ import { longDateLabel } from '@/features/activities/dateUtils';
 import { useExerciseProgress } from '@/features/workouts/useExerciseProgress';
 import { useTheme } from '@/hooks/use-theme';
 import type { RootStackParamList } from '@/app/navigation-types';
+import { Day1ProgressBar } from '@/components/molecules/Day1ProgressBar';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ExerciseProgress'>;
 
@@ -57,14 +58,7 @@ export function ExerciseProgressScreen({ route, navigation }: Props) {
                 <Day1Text variant="labelMedium14" color={colors.textSecondaryReadable} style={styles.date}>
                   {longDateLabel(point.date)}
                 </Day1Text>
-                <View style={[styles.barTrack, { backgroundColor: colors.progressTrack }]}>
-                  <View
-                    style={[
-                      styles.barFill,
-                      { width: `${barPercent}%`, backgroundColor: colors.actionPrimary },
-                    ]}
-                  />
-                </View>
+                <Day1ProgressBar percent={barPercent} />
                 <Day1Text variant="labelSemiBold14">{valueLabel}</Day1Text>
               </View>
             );
@@ -81,6 +75,4 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row' },
   row: { gap: Spacing[4] },
   date: { textTransform: 'capitalize' },
-  barTrack: { height: 10, borderRadius: Radius[8], overflow: 'hidden' },
-  barFill: { height: '100%', borderRadius: Radius[8] },
 });
