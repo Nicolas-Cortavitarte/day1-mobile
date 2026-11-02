@@ -1,0 +1,74 @@
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+
+import { Day1Button } from '@/components/atoms/Day1Button';
+import { Day1Text } from '@/components/atoms/Day1Text';
+import { Spacing } from '@/constants/theme';
+import { usePreferencesContext } from '@/features/profile/PreferencesProvider';
+import type { FontScale, ThemePreference } from '@/features/profile/types';
+import { useTheme } from '@/hooks/use-theme';
+import type { RootStackParamList } from '@/app/navigation-types';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'Appearance'>;
+
+const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
+  { value: 'SYSTEM', label: 'Automático' },
+  { value: 'LIGHT', label: 'Claro' },
+  { value: 'DARK', label: 'Oscuro' },
+];
+
+const FONT_SCALE_OPTIONS: { value: FontScale; label: string }[] = [
+  { value: 'SMALL', label: 'Pequeño' },
+  { value: 'MEDIUM', label: 'Medio' },
+  { value: 'LARGE', label: 'Grande' },
+];
+
+export function AppearanceScreen({ navigation }: Props) {
+  const colors = useTheme();
+  const { preferences, updatePreferences } = usePreferencesContext();
+
+  return (
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Day1Button label="Volver" variant="ghost" onPress={() => navigation.goBack()} />
+        </View>
+
+        <Day1Text variant="heading26">Apariencia</Day1Text>
+
+        <Day1Text variant="bodySemiBold16">Tema</Day1Text>
+        <View style={styles.row}>
+          {THEME_OPTIONS.map((option) => (
+            <Day1Button
+              key={option.value}
+              label={option.label}
+              variant={preferences?.theme === option.value ? 'primary' : 'secondary'}
+              onPress={() => updatePreferences({ theme: option.value })}
+            />
+          ))}
+        </View>
+
+        <Day1Text variant="bodySemiBold16" style={styles.sectionSpacing}>Tamaño de letra</Day1Text>
+        <View style={styles.row}>
+          {FONT_SCALE_OPTIONS.map((option) => (
+            <Day1Button
+              key={option.value}
+              label={option.label}
+              variant={preferences?.fontScale === option.value ? 'primary' : 'secondary'}
+              onPress={() => updatePreferences({ fontScale: option.value })}
+            />
+          ))}
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1 },
+  content: { flex: 1, padding: Spacing[16], gap: Spacing[8] },
+  header: { flexDirection: 'row' },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing[8] },
+  sectionSpacing: { marginTop: Spacing[16] },
+});
