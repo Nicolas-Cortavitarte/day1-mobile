@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -31,35 +31,53 @@ export function SignInScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <View style={styles.content}>
-        <Day1Text variant="heading28">Bienvenido de nuevo</Day1Text>
-        <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
-          Inicia sesión para continuar con tu rutina.
-        </Day1Text>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Day1Text variant="heading28">Qué bueno verte.</Day1Text>
+          <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
+            Tus planes y tus pequeños pasos te esperan.
+          </Day1Text>
+        </View>
 
-        <Day1TextField
-          label="Correo"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          placeholder="tu@correo.com"
-        />
+        <View style={styles.brand}>
+          <Day1Text variant="display46" color={colors.actionPressed}>
+            Day1
+          </Day1Text>
+        </View>
 
-        <Day1TextField
-          label="Contraseña"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoCapitalize="none"
-          placeholder="••••••••"
-        />
+        <View style={styles.fields}>
+          <Day1TextField
+            label="Correo electrónico"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            placeholder="alex@correo.com"
+          />
+
+          <Day1TextField
+            label="Contraseña"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            placeholder="••••••••••••"
+          />
+        </View>
 
         {error ? (
           <Day1Text variant="labelRegular14" color={colors.statusError}>
             {error}
           </Day1Text>
         ) : null}
+
+        <Day1Text
+          variant="labelSemiBold14"
+          color={colors.actionPressed}
+          style={styles.forgotLink}
+          onPress={() => navigation.navigate('ForgotPassword')}>
+          ¿Olvidaste tu contraseña?
+        </Day1Text>
 
         <Day1Button
           label={loading ? 'Entrando...' : 'Iniciar sesión'}
@@ -68,23 +86,32 @@ export function SignInScreen({ navigation }: Props) {
           disabled={loading || !email || !password}
         />
 
-        <Day1Button
-          label="Crear cuenta nueva"
-          variant="ghost"
-          onPress={() => navigation.navigate('SignUp')}
-        />
+        <View style={styles.signUpBlock}>
+          <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable} style={styles.centerText}>
+            ¿Es tu primer día aquí?
+          </Day1Text>
+          <Day1Button
+            label="Crear mi cuenta"
+            variant="secondary"
+            onPress={() => navigation.navigate('SignUp')}
+          />
+        </View>
 
-        <Day1Button
-          label="Olvidé mi contraseña"
-          variant="ghost"
-          onPress={() => navigation.navigate('ForgotPassword')}
-        />
-      </View>
+        <Day1Text variant="labelRegular13" color={colors.textSecondaryReadable} style={styles.centerText}>
+          One day or day one.
+        </Day1Text>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  content: { flex: 1, justifyContent: 'center', padding: Spacing[16], gap: Spacing[16] },
+  content: { flexGrow: 1, justifyContent: 'center', padding: Spacing[24], gap: Spacing[24] },
+  header: { gap: Spacing[12] },
+  brand: { alignItems: 'flex-start', justifyContent: 'center', minHeight: 92 },
+  fields: { gap: Spacing[20] },
+  forgotLink: { textAlign: 'right' },
+  signUpBlock: { gap: Spacing[8] },
+  centerText: { textAlign: 'center' },
 });
