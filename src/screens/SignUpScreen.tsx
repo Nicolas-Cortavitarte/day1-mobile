@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -44,37 +44,46 @@ export function SignUpScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <View style={styles.content}>
-        <Day1Text variant="heading28">Crea tu cuenta</Day1Text>
-        <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
-          Empieza a construir tu rutina con Day1.
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Day1Text variant="heading28">Tu día uno.</Day1Text>
+          <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
+            Crea tu cuenta y empieza a tu manera.
+          </Day1Text>
+        </View>
+
+        <View style={styles.form}>
+          <Day1TextField
+            label="Nombre o apodo"
+            value={displayName}
+            onChangeText={setDisplayName}
+            autoCapitalize="words"
+            placeholder="Alex"
+          />
+
+          <Day1TextField
+            label="Correo electrónico"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            placeholder="alex@correo.com"
+          />
+
+          <Day1TextField
+            label="Contraseña"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            placeholder="••••••••••••"
+            helperText="Al menos 8 caracteres, una letra y un número."
+          />
+        </View>
+
+        <Day1Text variant="labelRegular13" color={colors.textSecondaryReadable}>
+          Al crear tu cuenta, aceptas los Términos de uso y la Política de privacidad. Tus planes son privados.
         </Day1Text>
-
-        <Day1TextField
-          label="Nombre"
-          value={displayName}
-          onChangeText={setDisplayName}
-          autoCapitalize="words"
-          placeholder="Tu nombre"
-        />
-
-        <Day1TextField
-          label="Correo"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          placeholder="tu@correo.com"
-        />
-
-        <Day1TextField
-          label="Contraseña"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoCapitalize="none"
-          placeholder="Mínimo 6 caracteres"
-        />
 
         {error ? (
           <Day1Text variant="labelRegular14" color={colors.statusError}>
@@ -95,17 +104,34 @@ export function SignUpScreen({ navigation }: Props) {
           disabled={loading || !email || !password || !displayName}
         />
 
+        <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable} style={styles.centerText}>
+          ¿Ya tienes cuenta?
+        </Day1Text>
+
         <Day1Button
-          label="Ya tengo cuenta"
+          label="Iniciar sesión"
           variant="ghost"
           onPress={() => navigation.replace('SignIn')}
         />
-      </View>
+
+        <View style={styles.brandBlock}>
+          <Day1Text variant="heading26" color={colors.actionPressed}>
+            Day1
+          </Day1Text>
+          <Day1Text variant="labelRegular12" color={colors.textSecondaryReadable} style={styles.centerText}>
+            Tu progreso empieza contigo.
+          </Day1Text>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  content: { flex: 1, justifyContent: 'center', padding: Spacing[16], gap: Spacing[16] },
+  content: { flexGrow: 1, justifyContent: 'center', padding: Spacing[24], gap: Spacing[20] },
+  header: { gap: Spacing[12] },
+  form: { gap: Spacing[20] },
+  centerText: { textAlign: 'center' },
+  brandBlock: { gap: Spacing[12], alignItems: 'center', paddingTop: Spacing[16] },
 });

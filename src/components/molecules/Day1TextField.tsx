@@ -7,12 +7,13 @@ import { Day1FormField } from './Day1FormField';
 
 type Day1TextFieldProps = TextInputProps & {
   label: string;
+  helperText?: string;
 };
 
-export function Day1TextField({ label, style, ...rest }: Day1TextFieldProps) {
+export function Day1TextField({ label, helperText, style, ...rest }: Day1TextFieldProps) {
   const colors = useTheme();
   return (
-    <Day1FormField label={label}>
+    <Day1FormField label={label} helperText={helperText}>
       <Day1InputShell>
         <TextInput
           placeholderTextColor={colors.textSecondaryReadable}

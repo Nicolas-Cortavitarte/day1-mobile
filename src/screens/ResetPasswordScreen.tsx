@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
@@ -33,29 +33,34 @@ export function ResetPasswordScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <View style={styles.content}>
-        <Day1Text variant="heading28">Nueva contraseña</Day1Text>
-        <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
-          Escribe tu nueva contraseña dos veces para confirmarla.
-        </Day1Text>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Day1Text variant="heading28">Nueva contraseña</Day1Text>
+          <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
+            Escribe tu nueva contraseña dos veces para confirmarla.
+          </Day1Text>
+        </View>
 
-        <Day1TextField
-          label="Nueva contraseña"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoCapitalize="none"
-          placeholder="Mínimo 6 caracteres"
-        />
+        <View style={styles.form}>
+          <Day1TextField
+            label="Nueva contraseña"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            placeholder="••••••••••••"
+            helperText="Al menos 8 caracteres, una letra y un número."
+          />
 
-        <Day1TextField
-          label="Confirmar contraseña"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-          autoCapitalize="none"
-          placeholder="Repite tu contraseña"
-        />
+          <Day1TextField
+            label="Confirmar contraseña"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            placeholder="Repite tu contraseña"
+          />
+        </View>
 
         {error ? (
           <Day1Text variant="labelRegular14" color={colors.statusError}>
@@ -69,12 +74,14 @@ export function ResetPasswordScreen() {
           onPress={handleSave}
           disabled={loading || !password || !confirmPassword}
         />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  content: { flex: 1, justifyContent: 'center', padding: Spacing[16], gap: Spacing[16] },
+  content: { flexGrow: 1, justifyContent: 'center', padding: Spacing[24], gap: Spacing[20] },
+  header: { gap: Spacing[12] },
+  form: { gap: Spacing[20] },
 });

@@ -1,11 +1,15 @@
 import { createContext, use, useCallback, useEffect, useState, type PropsWithChildren } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { api } from '@/lib/api';
 import { useSession } from '@/features/auth/AuthProvider';
-import type { PreferencesUpdate, UserPreferences } from './types';
+import type { PreferencesUpdate, ThemePreference, UserPreferences } from './types';
+
+const CACHED_THEME_KEY = 'day1.cachedTheme';
 
 type PreferencesContextValue = {
   preferences: UserPreferences | null;
+  cachedTheme: ThemePreference | null;
   isLoading: boolean;
   updatePreferences: (changes: PreferencesUpdate) => Promise<void>;
   reload: () => Promise<void>;
@@ -22,7 +26,16 @@ export function usePreferencesContext() {
 export function PreferencesProvider({ children }: PropsWithChildren) {
   const { session } = useSession();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [cachedTheme, setCachedTheme] = useState<ThemePreference | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    AsyncStorage.getItem(CACHED_THEME_KEY).then((value) => {
+      if (value === 'LIGHT' || value === 'DARK' || value === 'SYSTEM') {
+        setCachedTheme(value);
+      }
+    });
+  }, []);
 
   const load = useCallback(async () => {
     if (!session) {
@@ -32,7 +45,10 @@ export function PreferencesProvider({ children }: PropsWithChildren) {
     }
     setIsLoading(true);
     try {
-      setPreferences(await api.get<UserPreferences>('/me/preferences'));
+      const data = await api.get<UserPreferences>('/me/preferences');
+      setPreferences(data);
+      setCachedTheme(data.theme);
+      AsyncStorage.setItem(CACHED_THEME_KEY, data.theme).catch(() => {});
     } finally {
       setIsLoading(false);
     }
@@ -45,10 +61,12 @@ export function PreferencesProvider({ children }: PropsWithChildren) {
   async function updatePreferences(changes: PreferencesUpdate) {
     const updated = await api.patch<UserPreferences>('/me/preferences', changes);
     setPreferences(updated);
+    setCachedTheme(updated.theme);
+    AsyncStorage.setItem(CACHED_THEME_KEY, updated.theme).catch(() => {});
   }
 
   return (
-    <PreferencesContext.Provider value={{ preferences, isLoading, updatePreferences, reload: load }}>
+    <PreferencesContext.Provider value={{ preferences, cachedTheme, isLoading, updatePreferences, reload: load }}>
       {children}
     </PreferencesContext.Provider>
   );
