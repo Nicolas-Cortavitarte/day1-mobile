@@ -93,6 +93,11 @@ export function longDateLabel(dateString: string): string {
   return `${weekday}, ${day} de ${month.toLowerCase()}`;
 }
 
+export function fullDateLabel(dateString: string): string {
+  const date = parseISODate(dateString);
+  return `${longDateLabel(dateString)} de ${date.getFullYear()}`;
+}
+
 export function startOfMonth(dateString: string): string {
   const date = parseISODate(dateString);
   return toISODate(new Date(date.getFullYear(), date.getMonth(), 1));

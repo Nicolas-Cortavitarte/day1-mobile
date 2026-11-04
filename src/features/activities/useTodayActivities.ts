@@ -1,17 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '@/lib/api';
+import { todayISODate } from './dateUtils';
 import type { Activity, Category } from './types';
 
-function todayISODate() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-export function useTodayActivities() {
+export function useTodayActivities(date: string = todayISODate()) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +14,6 @@ export function useTodayActivities() {
     setIsLoading(true);
     setError(null);
     try {
-      const date = todayISODate();
       const [categoriesData, activitiesData] = await Promise.all([
         api.get<Category[]>('/categories'),
         api.get<Activity[]>(`/activities?date=${date}`),
@@ -33,7 +25,7 @@ export function useTodayActivities() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [date]);
 
   useEffect(() => {
     load();

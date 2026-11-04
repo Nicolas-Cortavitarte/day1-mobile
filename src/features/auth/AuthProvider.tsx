@@ -8,6 +8,8 @@ type AuthContextValue = {
   session: Session | null;
   isLoading: boolean;
   isPasswordRecovery: boolean;
+  justSignedIn: boolean;
+  clearJustSignedIn: () => void;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (
     email: string,
@@ -49,6 +51,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [justSignedIn, setJustSignedIn] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -81,7 +84,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   async function signIn(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!error) setJustSignedIn(true);
     return { error: error?.message ?? null };
+  }
+
+  function clearJustSignedIn() {
+    setJustSignedIn(false);
   }
 
   async function signUp(email: string, password: string, displayName: string) {
@@ -123,6 +131,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
         session,
         isLoading,
         isPasswordRecovery,
+        justSignedIn,
+        clearJustSignedIn,
         signIn,
         signUp,
         signOut,
