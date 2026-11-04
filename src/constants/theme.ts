@@ -83,7 +83,7 @@ export const Spacing = {
 } as const;
 
 export const Radius = {
-  8: 8, 9: 9, 12: 12, 14: 14, 16: 16, 18: 18, 20: 20, 22: 22, 24: 24,
+  8: 8, 9: 9, 12: 12, 14: 14, 16: 16, 18: 18, 20: 20, 22: 22, 24: 24, 32:32, 
 } as const;
 
 export const MaxContentWidth = 800;

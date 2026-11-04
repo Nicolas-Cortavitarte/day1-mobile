@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
+import { Day1IconBadge } from '@/components/atoms/Day1IconBadge';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { useTheme } from '@/hooks/use-theme';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/AuthProvider';
 import type { RootStackParamList } from '@/app/navigation-types';
 
@@ -18,13 +19,12 @@ export function ForgotPasswordScreen({ navigation }: Props) {
   const { requestPasswordReset } = useSession();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleRequest() {
     setLoading(true);
     setError(null);
-    setNotice(null);
 
     const { error } = await requestPasswordReset(email);
     setLoading(false);
@@ -34,24 +34,73 @@ export function ForgotPasswordScreen({ navigation }: Props) {
       return;
     }
 
-    setNotice('Te enviamos un correo con un link para restablecer tu contraseña.');
+    setSent(true);
+  }
+
+  if (sent) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.header}>
+            <Day1Text variant="heading28">Revisa tu correo</Day1Text>
+            <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
+              Te acompañamos en el siguiente paso.
+            </Day1Text>
+          </View>
+
+          <Day1IconBadge glyph="✉️" />
+
+          <View style={[styles.card, { backgroundColor: colors.surfaceCard }]}>
+            <Day1Text variant="section20">Enlace enviado</Day1Text>
+            <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
+              Si existe una cuenta con {email}, recibirás un enlace para restablecer tu contraseña.
+            </Day1Text>
+          </View>
+
+          <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
+            El enlace caduca en 30 minutos. Si no lo ves, revisa la carpeta de correo no deseado.
+          </Day1Text>
+
+          <Day1Button
+            label="Volver a iniciar sesión"
+            variant="primary"
+            onPress={() => navigation.replace('SignIn')}
+          />
+
+          <Day1Button
+            label={loading ? 'Reenviando...' : 'Reenviar correo'}
+            variant="ghost"
+            onPress={handleRequest}
+            disabled={loading}
+          />
+        </ScrollView>
+      </SafeAreaView>
+    );
   }
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <View style={styles.content}>
-        <Day1Text variant="heading28">Recuperar contraseña</Day1Text>
-        <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
-          Te mandamos un link a tu correo para que puedas crear una nueva.
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Day1Text variant="heading28">Volvamos a entrar</Day1Text>
+          <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
+            A veces solo hace falta empezar de nuevo.
+          </Day1Text>
+        </View>
+
+        <Day1IconBadge glyph="🔑" />
+
+        <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
+          Escribe el correo de tu cuenta. Te enviaremos un enlace seguro para crear una nueva contraseña.
         </Day1Text>
 
         <Day1TextField
-          label="Correo"
+          label="Correo electrónico"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
-          placeholder="tu@correo.com"
+          placeholder="alex@correo.com"
         />
 
         {error ? (
@@ -60,14 +109,8 @@ export function ForgotPasswordScreen({ navigation }: Props) {
           </Day1Text>
         ) : null}
 
-        {notice ? (
-          <Day1Text variant="labelRegular14" color={colors.statusSuccess}>
-            {notice}
-          </Day1Text>
-        ) : null}
-
         <Day1Button
-          label={loading ? 'Enviando...' : 'Enviar link'}
+          label={loading ? 'Enviando...' : 'Enviar enlace'}
           variant="primary"
           onPress={handleRequest}
           disabled={loading || !email}
@@ -78,12 +121,14 @@ export function ForgotPasswordScreen({ navigation }: Props) {
           variant="ghost"
           onPress={() => navigation.replace('SignIn')}
         />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  content: { flex: 1, justifyContent: 'center', padding: Spacing[16], gap: Spacing[16] },
+  content: { flexGrow: 1, justifyContent: 'center', padding: Spacing[24], gap: Spacing[20] },
+  header: { gap: Spacing[12] },
+  card: { gap: Spacing[12], padding: Spacing[16], borderRadius: Radius[20] },
 });

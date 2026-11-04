@@ -4,11 +4,12 @@ import { usePreferencesContext } from '@/features/profile/PreferencesProvider';
 
 export function useTheme() {
   const systemScheme = useColorScheme();
-  const { preferences } = usePreferencesContext();
+  const { preferences, cachedTheme } = usePreferencesContext();
+  const theme = preferences?.theme ?? cachedTheme;
 
   const resolved =
-    preferences?.theme === 'LIGHT' ? 'light' :
-    preferences?.theme === 'DARK' ? 'dark' :
+    theme === 'LIGHT' ? 'light' :
+    theme === 'DARK' ? 'dark' :
     systemScheme === 'dark' ? 'dark' : 'light';
 
   return Colors[resolved];
