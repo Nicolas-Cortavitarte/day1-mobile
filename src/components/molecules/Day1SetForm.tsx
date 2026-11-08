@@ -7,40 +7,48 @@ import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
+import { usePreferencesContext } from '@/features/profile/PreferencesProvider';
+import { parseSetInput, type SetPayload } from '@/features/workouts/setValidation';
 import type { WeightUnit } from '@/features/workouts/types';
+import { getErrorMessage } from '@/lib/errors';
 
 type Props = {
-  onSubmit: (data: {
-    reps?: number;
-    weightValue?: number;
-    weightUnit?: WeightUnit;
-    durationSeconds?: number;
-    completed?: boolean;
-  }) => Promise<void>;
+  onSubmit: (data: SetPayload) => Promise<void>;
 };
 
 export function Day1SetForm({ onSubmit }: Props) {
   const colors = useTheme();
+  const { preferences } = usePreferencesContext();
+  const defaultUnit: WeightUnit = preferences?.preferredWeightUnit ?? 'KG';
+
   const [reps, setReps] = useState('');
   const [weightValue, setWeightValue] = useState('');
-  const [weightUnit, setWeightUnit] = useState<WeightUnit>('KG');
+  const [unitOverride, setUnitOverride] = useState<WeightUnit | null>(null);
   const [durationSeconds, setDurationSeconds] = useState('');
   const [completed, setCompleted] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const weightUnit = unitOverride ?? defaultUnit;
 
   async function handleSubmit() {
+    if (saving) return;
+
+    const result = parseSetInput({ reps, weightValue, durationSeconds, weightUnit, completed });
+    if (!result.ok) {
+      setError(result.message);
+      return;
+    }
+
     setSaving(true);
+    setError(null);
     try {
-      await onSubmit({
-        reps: reps ? Number(reps) : undefined,
-        weightValue: weightValue ? Number(weightValue) : undefined,
-        weightUnit: weightValue ? weightUnit : undefined,
-        durationSeconds: durationSeconds ? Number(durationSeconds) : undefined,
-        completed,
-      });
+      await onSubmit(result.payload);
       setReps('');
       setWeightValue('');
       setDurationSeconds('');
+    } catch (err) {
+      setError(getErrorMessage(err, 'No se pudo guardar la serie.'));
     } finally {
       setSaving(false);
     }
@@ -52,7 +60,10 @@ export function Day1SetForm({ onSubmit }: Props) {
         <Day1TextField
           label="Reps"
           value={reps}
-          onChangeText={setReps}
+          onChangeText={(text) => {
+            setReps(text);
+            setError(null);
+          }}
           keyboardType="number-pad"
           placeholder="10"
           style={styles.smallField}
@@ -60,7 +71,10 @@ export function Day1SetForm({ onSubmit }: Props) {
         <Day1TextField
           label="Peso"
           value={weightValue}
-          onChangeText={setWeightValue}
+          onChangeText={(text) => {
+            setWeightValue(text);
+            setError(null);
+          }}
           keyboardType="decimal-pad"
           placeholder="50"
           style={styles.smallField}
@@ -71,19 +85,22 @@ export function Day1SetForm({ onSubmit }: Props) {
         <Day1Button
           label="KG"
           variant={weightUnit === 'KG' ? 'primary' : 'secondary'}
-          onPress={() => setWeightUnit('KG')}
+          onPress={() => setUnitOverride('KG')}
         />
         <Day1Button
           label="LB"
           variant={weightUnit === 'LB' ? 'primary' : 'secondary'}
-          onPress={() => setWeightUnit('LB')}
+          onPress={() => setUnitOverride('LB')}
         />
       </View>
 
       <Day1TextField
         label="Duración en segundos (opcional)"
         value={durationSeconds}
-        onChangeText={setDurationSeconds}
+        onChangeText={(text) => {
+          setDurationSeconds(text);
+          setError(null);
+        }}
         keyboardType="number-pad"
         placeholder="60"
       />
@@ -94,6 +111,12 @@ export function Day1SetForm({ onSubmit }: Props) {
           Serie completada
         </Day1Text>
       </View>
+
+      {error ? (
+        <Day1Text variant="labelRegular14" color={colors.statusError}>
+          {error}
+        </Day1Text>
+      ) : null}
 
       <Day1Button
         label={saving ? 'Guardando...' : 'Agregar serie'}

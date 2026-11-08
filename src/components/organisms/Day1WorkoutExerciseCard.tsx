@@ -5,17 +5,12 @@ import { Day1SetForm } from '@/components/molecules/Day1SetForm';
 import { Day1SetRow } from '@/components/molecules/Day1SetRow';
 import { useTheme } from '@/hooks/use-theme';
 import { Radius, Spacing } from '@/constants/theme';
-import type { WeightUnit, WorkoutSessionExercise } from '@/features/workouts/types';
+import type { SetPayload } from '@/features/workouts/setValidation';
+import type { WorkoutSessionExercise } from '@/features/workouts/types';
 
 type Props = {
   exercise: WorkoutSessionExercise;
-  onLogSet: (data: {
-    reps?: number;
-    weightValue?: number;
-    weightUnit?: WeightUnit;
-    durationSeconds?: number;
-    completed?: boolean;
-  }) => Promise<void>;
+  onLogSet: (data: SetPayload) => Promise<void>;
 };
 
 export function Day1WorkoutExerciseCard({ exercise, onLogSet }: Props) {

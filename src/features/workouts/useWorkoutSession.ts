@@ -1,35 +1,50 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/errors';
 import type { WeightUnit, WorkoutSessionDetail } from './types';
 
 export function useWorkoutSession(activityId: string) {
   const [session, setSession] = useState<WorkoutSessionDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const requestId = useRef(0);
 
-  const load = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      setSession(await api.get<WorkoutSessionDetail>(`/activities/${activityId}/workout`));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo cargar la sesión.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activityId]);
+  const load = useCallback(
+    async (silent = false) => {
+      const currentRequest = ++requestId.current;
+      if (!silent) {
+        setIsLoading(true);
+        setError(null);
+      }
+      try {
+        const data = await api.get<WorkoutSessionDetail>(`/activities/${activityId}/workout`);
+        if (currentRequest !== requestId.current) return;
+        setSession(data);
+        setError(null);
+      } catch (err) {
+        if (currentRequest === requestId.current && !silent) {
+          setError(getErrorMessage(err, 'No se pudo cargar la sesión.'));
+        }
+      } finally {
+        if (currentRequest === requestId.current) setIsLoading(false);
+      }
+    },
+    [activityId],
+  );
 
   useEffect(() => {
     load();
   }, [load]);
+
+  const reload = useCallback(() => load(false), [load]);
 
   async function addExercise(exerciseId: string, notes?: string) {
     await api.post(`/activities/${activityId}/workout/exercises`, {
       exerciseId,
       notes: notes || undefined,
     });
-    await load();
+    await load(true);
   }
 
   async function logSet(
@@ -43,8 +58,8 @@ export function useWorkoutSession(activityId: string) {
     },
   ) {
     await api.post(`/workout-exercises/${sessionExerciseId}/sets`, data);
-    await load();
+    await load(true);
   }
 
-  return { session, isLoading, error, reload: load, addExercise, logSet };
+  return { session, isLoading, error, reload, addExercise, logSet };
 }

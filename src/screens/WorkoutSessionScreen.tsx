@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -10,6 +10,7 @@ import { Day1WorkoutExerciseCard } from '@/components/organisms/Day1WorkoutExerc
 import { Spacing } from '@/constants/theme';
 import { useExercises } from '@/features/workouts/useExercises';
 import { useWorkoutSession } from '@/features/workouts/useWorkoutSession';
+import { getErrorMessage } from '@/lib/errors';
 import { useTheme } from '@/hooks/use-theme';
 import type { RootStackParamList } from '@/app/navigation-types';
 
@@ -19,45 +20,76 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
   const colors = useTheme();
   const { activityId, activityTitle } = route.params;
 
-  const { session, isLoading, error, addExercise, logSet } = useWorkoutSession(activityId);
-  const { exercises, createExercise } = useExercises();
+  const { session, isLoading, error, reload, addExercise, logSet } = useWorkoutSession(activityId);
+  const { exercises, error: exercisesError, reload: reloadExercises, createExercise } = useExercises();
 
   const [search, setSearch] = useState('');
   const [muscleGroup, setMuscleGroup] = useState('');
   const [saving, setSaving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const addedExerciseIds = useMemo(
     () => new Set(session?.exercises.map((e) => e.exerciseId) ?? []),
     [session],
   );
 
+  const normalizedSearch = search.trim().toLowerCase();
+
   const filteredExercises = useMemo(
     () =>
       exercises.filter(
-        (e) => !addedExerciseIds.has(e.id) && e.name.toLowerCase().includes(search.toLowerCase()),
+        (e) => !addedExerciseIds.has(e.id) && e.name.toLowerCase().includes(normalizedSearch),
       ),
-    [exercises, addedExerciseIds, search],
+    [exercises, addedExerciseIds, normalizedSearch],
   );
 
-  const noMatches = search.trim().length > 0 && filteredExercises.length === 0;
+  const exactMatch = useMemo(
+    () => exercises.find((e) => e.name.trim().toLowerCase() === normalizedSearch) ?? null,
+    [exercises, normalizedSearch],
+  );
+
+  const alreadyInSession = exactMatch ? addedExerciseIds.has(exactMatch.id) : false;
+  const canCreate = normalizedSearch.length > 0 && !exactMatch;
+
+  function handleSearchChange(text: string) {
+    setSearch(text);
+    setActionError(null);
+  }
 
   async function handleAddExisting(exerciseId: string) {
+    if (saving) return;
     setSaving(true);
+    setActionError(null);
     try {
       await addExercise(exerciseId);
       setSearch('');
+    } catch (err) {
+      setActionError(getErrorMessage(err, 'No se pudo agregar el ejercicio.'));
     } finally {
       setSaving(false);
     }
   }
 
   async function handleCreateAndAdd() {
+    if (saving) return;
+    const name = search.trim();
+    if (!name) return;
     setSaving(true);
+    setActionError(null);
     try {
-      const exercise = await createExercise(search.trim(), muscleGroup.trim() || undefined);
-      await addExercise(exercise.id);
+      const exercise = await createExercise(name, muscleGroup.trim() || undefined);
+      try {
+        await addExercise(exercise.id);
+      } catch (err) {
+        setActionError(
+          `${getErrorMessage(err, 'No se pudo agregar el ejercicio a la sesión.')} El ejercicio ya quedó creado, selecciónalo de la lista.`,
+        );
+        return;
+      }
       setSearch('');
       setMuscleGroup('');
+    } catch (err) {
+      setActionError(getErrorMessage(err, 'No se pudo crear el ejercicio.'));
     } finally {
       setSaving(false);
     }
@@ -65,17 +97,29 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading && !!session}
+            onRefresh={reload}
+            tintColor={colors.actionPrimary}
+          />
+        }>
         <View style={styles.header}>
           <Day1Button label="Volver" variant="ghost" onPress={() => navigation.goBack()} />
         </View>
 
         <Day1Text variant="heading26">{activityTitle}</Day1Text>
 
-        {error ? (
-          <Day1Text variant="labelRegular14" color={colors.statusError}>
-            {error}
-          </Day1Text>
+        {error && !session ? (
+          <View style={styles.createBox}>
+            <Day1Text variant="labelRegular14" color={colors.statusError}>
+              {error}
+            </Day1Text>
+            <Day1Button label="Reintentar" variant="secondary" onPress={reload} />
+          </View>
         ) : isLoading && !session ? (
           <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
             Cargando sesión...
@@ -93,11 +137,21 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
             <View style={styles.addSection}>
               <Day1Text variant="bodySemiBold16">Agregar ejercicio</Day1Text>
 
+              {exercisesError ? (
+                <View style={styles.createBox}>
+                  <Day1Text variant="labelRegular14" color={colors.statusError}>
+                    {exercisesError}
+                  </Day1Text>
+                  <Day1Button label="Reintentar" variant="secondary" onPress={reloadExercises} />
+                </View>
+              ) : null}
+
               <Day1TextField
                 label="Buscar o crear"
                 value={search}
-                onChangeText={setSearch}
+                onChangeText={handleSearchChange}
                 placeholder="Ej: Press banca"
+                maxLength={80}
               />
 
               {filteredExercises.map((exercise) => (
@@ -110,7 +164,13 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
                 />
               ))}
 
-              {noMatches ? (
+              {alreadyInSession ? (
+                <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
+                  Ese ejercicio ya está en esta sesión.
+                </Day1Text>
+              ) : null}
+
+              {canCreate ? (
                 <View style={styles.createBox}>
                   <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
                     No existe ese ejercicio todavía. Créalo:
@@ -120,14 +180,21 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
                     value={muscleGroup}
                     onChangeText={setMuscleGroup}
                     placeholder="Pecho"
+                    maxLength={60}
                   />
                   <Day1Button
-                    label="Crear y agregar"
+                    label={saving ? 'Guardando...' : 'Crear y agregar'}
                     variant="primary"
                     onPress={handleCreateAndAdd}
                     disabled={saving}
                   />
                 </View>
+              ) : null}
+
+              {actionError ? (
+                <Day1Text variant="labelRegular14" color={colors.statusError}>
+                  {actionError}
+                </Day1Text>
               ) : null}
             </View>
           </>

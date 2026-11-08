@@ -1,22 +1,29 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/errors';
 import type { WorkoutHistoryEntry } from './types';
 
 export function useWorkoutHistory() {
   const [history, setHistory] = useState<WorkoutHistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const requestId = useRef(0);
 
   const load = useCallback(async () => {
+    const currentRequest = ++requestId.current;
     setIsLoading(true);
     setError(null);
     try {
-      setHistory(await api.get<WorkoutHistoryEntry[]>('/workouts/history'));
+      const data = await api.get<WorkoutHistoryEntry[]>('/workouts/history');
+      if (currentRequest !== requestId.current) return;
+      setHistory(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo cargar el historial.');
+      if (currentRequest === requestId.current) {
+        setError(getErrorMessage(err, 'No se pudo cargar el historial.'));
+      }
     } finally {
-      setIsLoading(false);
+      if (currentRequest === requestId.current) setIsLoading(false);
     }
   }, []);
 
