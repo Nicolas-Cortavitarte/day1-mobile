@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1Text } from '@/components/atoms/Day1Text';
-import { Spacing, Radius } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { longDateLabel } from '@/features/activities/dateUtils';
 import { useExerciseProgress } from '@/features/workouts/useExerciseProgress';
 import { useTheme } from '@/hooks/use-theme';

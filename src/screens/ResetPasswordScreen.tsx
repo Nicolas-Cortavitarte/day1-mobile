@@ -8,16 +8,24 @@ import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/AuthProvider';
+import { PASSWORD_HELPER_TEXT, validatePassword } from '@/features/auth/validation';
 
 export function ResetPasswordScreen() {
   const colors = useTheme();
-  const { completePasswordReset } = useSession();
+  const { completePasswordReset, cancelPasswordRecovery } = useSession();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSave() {
+    if (loading) return;
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(`Contraseña inválida. ${passwordError}`);
+      return;
+    }
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden.');
       return;
@@ -25,15 +33,15 @@ export function ResetPasswordScreen() {
 
     setLoading(true);
     setError(null);
-    const { error } = await completePasswordReset(password);
+    const { error: resetError } = await completePasswordReset(password);
     setLoading(false);
 
-    if (error) setError(error);
+    if (resetError) setError(resetError);
   }
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Day1Text variant="heading28">Nueva contraseña</Day1Text>
           <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
@@ -48,8 +56,10 @@ export function ResetPasswordScreen() {
             onChangeText={setPassword}
             secureTextEntry
             autoCapitalize="none"
+            textContentType="newPassword"
+            autoComplete="new-password"
             placeholder="••••••••••••"
-            helperText="Al menos 8 caracteres, una letra y un número."
+            helperText={PASSWORD_HELPER_TEXT}
           />
 
           <Day1TextField
@@ -58,6 +68,7 @@ export function ResetPasswordScreen() {
             onChangeText={setConfirmPassword}
             secureTextEntry
             autoCapitalize="none"
+            textContentType="newPassword"
             placeholder="Repite tu contraseña"
           />
         </View>
@@ -73,6 +84,13 @@ export function ResetPasswordScreen() {
           variant="primary"
           onPress={handleSave}
           disabled={loading || !password || !confirmPassword}
+        />
+
+        <Day1Button
+          label="Cancelar"
+          variant="ghost"
+          onPress={cancelPasswordRecovery}
+          disabled={loading}
         />
       </ScrollView>
     </SafeAreaView>

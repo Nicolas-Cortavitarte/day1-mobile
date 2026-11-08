@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -8,14 +8,17 @@ import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Spacing } from '@/constants/theme';
 import { useProfile } from '@/features/profile/useProfile';
+import { getErrorMessage } from '@/lib/errors';
 import { useTheme } from '@/hooks/use-theme';
 import type { RootStackParamList } from '@/app/navigation-types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditProfile'>;
 
+const URL_REGEX = /^https?:\/\/\S+\.\S+$/i;
+
 export function EditProfileScreen({ navigation }: Props) {
   const colors = useTheme();
-  const { profile, isLoading, error, updateProfile } = useProfile();
+  const { profile, isLoading, error, reload, updateProfile } = useProfile();
 
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -27,16 +30,29 @@ export function EditProfileScreen({ navigation }: Props) {
       setDisplayName(profile.displayName ?? '');
       setAvatarUrl(profile.avatarUrl ?? '');
     }
-  }, [profile]);
+  }, [profile?.id]);
 
   async function handleSave() {
+    if (saving) return;
+
+    const trimmedName = displayName.trim();
+    const trimmedUrl = avatarUrl.trim();
+
+    if (trimmedUrl && !URL_REGEX.test(trimmedUrl)) {
+      setSaveError('La URL de la foto debe empezar con http:// o https://');
+      return;
+    }
+
     setSaving(true);
     setSaveError(null);
     try {
-      await updateProfile({ displayName: displayName || undefined, avatarUrl: avatarUrl || undefined });
+      await updateProfile({
+        displayName: trimmedName || null,
+        avatarUrl: trimmedUrl || null,
+      });
       navigation.goBack();
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'No se pudo guardar.');
+      setSaveError(getErrorMessage(err, 'No se pudo guardar.'));
     } finally {
       setSaving(false);
     }
@@ -44,26 +60,37 @@ export function EditProfileScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Day1Button label="Cancelar" variant="ghost" onPress={() => navigation.goBack()} />
         </View>
 
         <Day1Text variant="heading26">Editar perfil</Day1Text>
 
-        {error ? (
-          <Day1Text variant="labelRegular14" color={colors.statusError}>{error}</Day1Text>
-        ) : isLoading ? (
+        {!profile && error ? (
+          <View style={styles.block}>
+            <Day1Text variant="labelRegular14" color={colors.statusError}>{error}</Day1Text>
+            <Day1Button label="Reintentar" variant="secondary" onPress={reload} />
+          </View>
+        ) : !profile && isLoading ? (
           <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>Cargando...</Day1Text>
         ) : (
           <>
-            <Day1TextField label="Nombre" value={displayName} onChangeText={setDisplayName} placeholder="Tu nombre" />
+            <Day1TextField
+              label="Nombre"
+              value={displayName}
+              onChangeText={setDisplayName}
+              placeholder="Tu nombre"
+              maxLength={80}
+            />
             <Day1TextField
               label="URL de foto de perfil (opcional)"
               value={avatarUrl}
               onChangeText={setAvatarUrl}
               placeholder="https://..."
               autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
             />
 
             {saveError ? (
@@ -78,13 +105,14 @@ export function EditProfileScreen({ navigation }: Props) {
             />
           </>
         )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  content: { flex: 1, padding: Spacing[16], gap: Spacing[16] },
+  content: { padding: Spacing[16], gap: Spacing[16] },
   header: { flexDirection: 'row' },
+  block: { gap: Spacing[8] },
 });

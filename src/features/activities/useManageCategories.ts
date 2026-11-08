@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/errors';
 import type { Category } from './types';
 
 export function useManageCategories() {
@@ -14,7 +15,7 @@ export function useManageCategories() {
     try {
       setCategories(await api.get<Category[]>('/categories'));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudieron cargar las categorías.');
+      setError(getErrorMessage(err, 'No se pudieron cargar las categorías.'));
     } finally {
       setIsLoading(false);
     }
@@ -25,13 +26,16 @@ export function useManageCategories() {
   }, [load]);
 
   async function createCategory(name: string, color: string) {
-    const category = await api.post<Category>('/categories', { name, color });
+    const category = await api.post<Category>('/categories', { name: name.trim(), color });
     setCategories((prev) => [...prev, category]);
     return category;
   }
 
   async function updateCategory(id: number, changes: { name?: string; color?: string }) {
-    const updated = await api.patch<Category>(`/categories/${id}`, changes);
+    const updated = await api.patch<Category>(`/categories/${id}`, {
+      ...changes,
+      ...(changes.name !== undefined ? { name: changes.name.trim() } : {}),
+    });
     setCategories((prev) => prev.map((c) => (c.id === id ? updated : c)));
   }
 

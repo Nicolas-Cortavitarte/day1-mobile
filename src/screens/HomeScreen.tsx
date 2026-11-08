@@ -43,7 +43,7 @@ export function HomeScreen({ navigation }: Props) {
 
   useEffect(() => {
     if (justSignedIn) clearJustSignedIn();
-  }, []);
+  }, [justSignedIn, clearJustSignedIn]);
 
   const scheduled = activities.filter((a) => a.startTime);
   const anytime = activities.filter((a) => !a.startTime);

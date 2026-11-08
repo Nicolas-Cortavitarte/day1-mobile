@@ -9,6 +9,7 @@ import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/AuthProvider';
+import { isValidEmail } from '@/features/auth/validation';
 import type { RootStackParamList } from '@/app/navigation-types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
@@ -22,16 +23,22 @@ export function SignInScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
 
   async function handleSignIn() {
+    if (loading) return;
+    if (!isValidEmail(email)) {
+      setError('Escribe un correo electrónico válido.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    const { error } = await signIn(email, password);
+    const { error: signInError } = await signIn(email, password);
     setLoading(false);
-    if (error) setError(error);
+    if (signInError) setError(signInError);
   }
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Day1Text variant="heading28">Qué bueno verte.</Day1Text>
           <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
@@ -51,7 +58,10 @@ export function SignInScreen({ navigation }: Props) {
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
+            autoCorrect={false}
             keyboardType="email-address"
+            textContentType="emailAddress"
+            autoComplete="email"
             placeholder="alex@correo.com"
           />
 
@@ -61,7 +71,11 @@ export function SignInScreen({ navigation }: Props) {
             onChangeText={setPassword}
             secureTextEntry
             autoCapitalize="none"
+            textContentType="password"
+            autoComplete="current-password"
             placeholder="••••••••••••"
+            returnKeyType="go"
+            onSubmitEditing={handleSignIn}
           />
         </View>
 

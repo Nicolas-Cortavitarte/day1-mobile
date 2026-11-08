@@ -23,4 +23,7 @@ export type UserProfile = {
   avatarUrl: string | null;
 };
 
-export type ProfileUpdate = Partial<Pick<UserProfile, 'displayName' | 'avatarUrl'>>;
+export type ProfileUpdate = {
+  displayName?: string | null;
+  avatarUrl?: string | null;
+};
