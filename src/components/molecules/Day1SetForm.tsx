@@ -66,7 +66,7 @@ export function Day1SetForm({ onSubmit }: Props) {
           }}
           keyboardType="number-pad"
           placeholder="10"
-          style={styles.smallField}
+          containerStyle={styles.smallField}
         />
         <Day1TextField
           label="Peso"
@@ -77,7 +77,7 @@ export function Day1SetForm({ onSubmit }: Props) {
           }}
           keyboardType="decimal-pad"
           placeholder="50"
-          style={styles.smallField}
+          containerStyle={styles.smallField}
         />
       </View>
 
@@ -86,11 +86,13 @@ export function Day1SetForm({ onSubmit }: Props) {
           label="KG"
           variant={weightUnit === 'KG' ? 'primary' : 'secondary'}
           onPress={() => setUnitOverride('KG')}
+          style={styles.smallField}
         />
         <Day1Button
           label="LB"
           variant={weightUnit === 'LB' ? 'primary' : 'secondary'}
           onPress={() => setUnitOverride('LB')}
+          style={styles.smallField}
         />
       </View>
 
@@ -129,8 +131,8 @@ export function Day1SetForm({ onSubmit }: Props) {
 }
 
 const styles = StyleSheet.create({
-  box: { gap: Spacing[8], paddingTop: Spacing[8] },
-  row: { flexDirection: 'row', gap: Spacing[8] },
-  smallField: { flex: 1 },
+  box: { gap: Spacing[10], paddingTop: Spacing[8] },
+  row: { flexDirection: 'row', gap: Spacing[10] },
+  smallField: { flex: 1, width: 'auto' },
   checkboxRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[8] },
 });

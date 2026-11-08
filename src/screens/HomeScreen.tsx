@@ -6,11 +6,13 @@ import { useFocusEffect } from '@react-navigation/native';
 import { ANIMATIONS } from '@/assets/animations';
 import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1FloatingActionButton } from '@/components/atoms/Day1FloatingActionButton';
+import { Day1Icon } from '@/components/atoms/Day1Icon';
 import { Day1Lottie } from '@/components/atoms/Day1Lottie';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ActivityRow } from '@/components/molecules/Day1ActivityRow';
 import { Day1DailyProgressSummary } from '@/components/molecules/Day1DailyProgressSummary';
 import { Day1DateStrip } from '@/components/molecules/Day1DateStrip';
+import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
 import { Radius, Spacing } from '@/constants/theme';
 import { fullDateLabel, todayISODate } from '@/features/activities/dateUtils';
 import { useTodayActivities } from '@/features/activities/useTodayActivities';
@@ -54,20 +56,14 @@ export function HomeScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
       {error ? (
-        <View style={styles.errorBox}>
-          <Day1Lottie source={ANIMATIONS.alert} size={72} />
-          <Day1Text variant="labelRegular14" color={colors.statusError} style={styles.centerText}>
-            {error}
-          </Day1Text>
-          <Day1Button label="Reintentar" variant="secondary" onPress={reload} />
-        </View>
+        <Day1ErrorState message={error} onRetry={reload} />
       ) : (
         <ScrollView
           contentContainerStyle={styles.content}
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={reload} tintColor={colors.actionPrimary} />}>
           <View style={styles.greetingBlock}>
             <Day1Text variant="heading26">
-              ¡{greeting()}{firstName ? `, ${firstName}` : ''}! 🌱
+              ¡{greeting()}{firstName ? `, ${firstName}` : ''}!
             </Day1Text>
             <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable} style={styles.capitalize}>
               {fullDateLabel(selectedDate)}
@@ -77,9 +73,7 @@ export function HomeScreen({ navigation }: Props) {
           {showWelcomeBanner ? (
             <View style={[styles.banner, { backgroundColor: colors.surfaceCard, borderColor: colors.borderSubtle }]}>
               <View style={[styles.bannerCheck, { backgroundColor: colors.statusSuccess }]}>
-                <Day1Text variant="labelSemiBold12" color={colors.textOnAction}>
-                  ✓
-                </Day1Text>
+                <Day1Icon name="check" size={14} strokeWidth={3} color={colors.textOnAction} />
               </View>
               <View style={styles.bannerTexts}>
                 <Day1Text variant="bodySemiBold16">¡Qué bueno tenerte de vuelta!</Day1Text>
@@ -114,7 +108,8 @@ export function HomeScreen({ navigation }: Props) {
                   Puedes añadir un plan si lo necesitas. Descansar también está bien.
                 </Day1Text>
                 <Day1Button
-                  label="+ Añadir actividad"
+                  label="Añadir actividad"
+                  icon="plus"
                   variant="primary"
                   onPress={() => navigation.navigate('CreateActivity')}
                   style={styles.emptyButton}
@@ -172,17 +167,16 @@ export function HomeScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  content: { padding: Spacing[20], paddingBottom: Spacing[64], gap: Spacing[12] },
-  greetingBlock: { gap: Spacing[6] },
+  content: { padding: Spacing[20], paddingBottom: Spacing[64], gap: Spacing[16] },
+  greetingBlock: { gap: Spacing[4] },
   capitalize: { textTransform: 'capitalize' },
-  section: { gap: Spacing[10] },
+  section: { gap: Spacing[8], marginTop: Spacing[4] },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  banner: { flexDirection: 'row', gap: Spacing[12], padding: Spacing[12], borderRadius: Radius[14], borderWidth: 1 },
-  bannerCheck: { width: 22, height: 22, borderRadius: Radius[12], alignItems: 'center', justifyContent: 'center' },
+  banner: { flexDirection: 'row', gap: Spacing[12], padding: Spacing[12], borderRadius: Radius[14], borderWidth: 1, alignItems: 'center' },
+  bannerCheck: { width: 24, height: 24, borderRadius: Radius[12], alignItems: 'center', justifyContent: 'center' },
   bannerTexts: { flex: 1, gap: 2 },
   emptyCard: { gap: Spacing[4], padding: Spacing[16], borderRadius: Radius[20] },
   emptyState: { alignItems: 'center', gap: Spacing[12], paddingTop: Spacing[24], paddingHorizontal: Spacing[16] },
   emptyButton: { width: '100%', marginTop: Spacing[8] },
   centerText: { textAlign: 'center' },
-  errorBox: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: Spacing[12], padding: Spacing[16] },
 });

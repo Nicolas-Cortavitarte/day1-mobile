@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { useSession } from '@/features/auth/AuthProvider';
@@ -6,6 +7,8 @@ import { ForgotPasswordScreen } from '@/screens/ForgotPasswordScreen';
 import { ResetPasswordScreen } from '@/screens/ResetPasswordScreen';
 import { SignInScreen } from '@/screens/SignInScreen';
 import { SignUpScreen } from '@/screens/SignUpScreen';
+import { SplashScreen } from '@/screens/SplashScreen';
+import { WelcomeScreen } from '@/screens/WelcomeScreen';
 import { ActivityDetailScreen } from '@/screens/ActivityDetailScreen';
 import { EditActivityScreen } from '@/screens/EditActivityScreen';
 import { RescheduleActivityScreen } from '@/screens/RescheduleActivityScreen';
@@ -18,12 +21,22 @@ import { ManageCategoriesScreen } from '@/screens/ManageCategoriesScreen';
 import { AppearanceScreen } from '@/screens/AppearanceScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const MIN_SPLASH_DURATION_MS = 1400;
 
 export function AppNavigator() {
   const { session, isLoading, isPasswordRecovery } = useSession();
+  const [minDelayDone, setMinDelayDone] = useState(false);
 
-  if (isLoading) {
-    return null;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinDelayDone(true);
+    }, MIN_SPLASH_DURATION_MS);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading || !minDelayDone) {
+    return <SplashScreen />;
   }
 
   return (
@@ -35,8 +48,8 @@ export function AppNavigator() {
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen name="CreateActivity" component={CreateActivityScreen} options={{ presentation: 'modal' }} />
           <Stack.Screen name="ActivityDetail" component={ActivityDetailScreen} />
-          <Stack.Screen name='EditActivity' component={EditActivityScreen} />
-          <Stack.Screen name='RescheduleActivity' component={RescheduleActivityScreen} />
+          <Stack.Screen name="EditActivity" component={EditActivityScreen} />
+          <Stack.Screen name="RescheduleActivity" component={RescheduleActivityScreen} />
           <Stack.Screen name="WorkoutSession" component={WorkoutSessionScreen} />
           <Stack.Screen name="ExerciseProgress" component={ExerciseProgressScreen} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} />
@@ -45,6 +58,7 @@ export function AppNavigator() {
         </>
       ) : (
         <>
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="SignIn" component={SignInScreen} />
           <Stack.Screen name="SignUp" component={SignUpScreen} />
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
