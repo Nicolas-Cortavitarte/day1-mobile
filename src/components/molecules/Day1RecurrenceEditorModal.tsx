@@ -45,6 +45,7 @@ export function Day1RecurrenceEditorModal({
   const [daysOfWeek, setDaysOfWeek] = useState(initialValue.daysOfWeek);
   const [intervalDays, setIntervalDays] = useState(initialValue.intervalDays);
   const [endDate, setEndDate] = useState<string | null>(initialValue.endDate);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (visible) {
@@ -52,11 +53,30 @@ export function Day1RecurrenceEditorModal({
       setDaysOfWeek(initialValue.daysOfWeek);
       setIntervalDays(initialValue.intervalDays);
       setEndDate(initialValue.endDate);
+      setError(null);
     }
   }, [visible, initialValue]);
 
   function toggleDay(day: number) {
+    setError(null);
     setDaysOfWeek((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
+  }
+
+  function handleApply() {
+    if (frequency === 'WEEKLY_DAYS' && daysOfWeek.length === 0) {
+      setError('Selecciona al menos un día de la semana.');
+      return;
+    }
+    if (endDate && endDate < startDate) {
+      setError('La fecha de finalización no puede ser anterior al inicio.');
+      return;
+    }
+    onApply({
+      frequency,
+      daysOfWeek,
+      intervalDays,
+      endDate: frequency === 'NONE' ? null : endDate,
+    });
   }
 
   const value: RecurrenceValue = { frequency, daysOfWeek, intervalDays, endDate };
@@ -83,7 +103,10 @@ export function Day1RecurrenceEditorModal({
                 key={option.value}
                 label={option.label}
                 selected={frequency === option.value}
-                onPress={() => setFrequency(option.value)}
+                onPress={() => {
+                  setFrequency(option.value);
+                  setError(null);
+                }}
                 isLast={index === FREQUENCY_OPTIONS.length - 1}
               />
             ))}
@@ -96,14 +119,34 @@ export function Day1RecurrenceEditorModal({
             </View>
           ) : null}
 
-          <Day1DateField
-            label="Fecha de finalización opcional"
-            mode="date"
-            value={endDate ? parseISODate(endDate) : null}
-            onChange={(date) => setEndDate(toISODate(date))}
-            placeholder="Sin fecha de fin"
-            minimumDate={parseISODate(startDate)}
-          />
+          {frequency === 'CUSTOM_DAYS' ? (
+            <View style={styles.stepperBlock}>
+              <View style={styles.stepperRow}>
+                <Day1Text variant="bodyRegular16">Repetir cada</Day1Text>
+                <Day1Stepper
+                  value={intervalDays}
+                  onChange={setIntervalDays}
+                  suffix={intervalDays === 1 ? 'día' : 'días'}
+                  min={1}
+                />
+              </View>
+            </View>
+          ) : null}
+
+          {frequency !== 'NONE' ? (
+            <Day1DateField
+              label="Fecha de finalización opcional"
+              mode="date"
+              value={endDate ? parseISODate(endDate) : null}
+              onChange={(date) => {
+                setEndDate(toISODate(date));
+                setError(null);
+              }}
+              onClear={() => setEndDate(null)}
+              placeholder="Sin fecha de fin"
+              minimumDate={parseISODate(startDate)}
+            />
+          ) : null}
 
           <View style={[styles.previewCard, { backgroundColor: colors.surfaceBrandSoft }]}>
             <Day1Text variant="labelRegular14" color={colors.textPrimary}>
@@ -111,22 +154,13 @@ export function Day1RecurrenceEditorModal({
             </Day1Text>
           </View>
 
-          <Day1Button label="Aplicar repetición" variant="primary" onPress={() => onApply(value)} />
-
-          <View style={styles.stepperBlock}>
-            <Day1Text variant="labelSemiBold12" color={colors.textSecondaryReadable}>
-              AL ELEGIR «CADA N DÍAS»
+          {error ? (
+            <Day1Text variant="labelRegular14" color={colors.statusError}>
+              {error}
             </Day1Text>
-            <View style={styles.stepperRow}>
-              <Day1Text variant="bodyRegular16">Repetir cada</Day1Text>
-              <Day1Stepper
-                value={intervalDays}
-                onChange={setIntervalDays}
-                suffix={intervalDays === 1 ? 'día' : 'días'}
-                min={1}
-              />
-            </View>
-          </View>
+          ) : null}
+
+          <Day1Button label="Aplicar repetición" variant="primary" onPress={handleApply} />
         </ScrollView>
       </SafeAreaView>
     </Modal>

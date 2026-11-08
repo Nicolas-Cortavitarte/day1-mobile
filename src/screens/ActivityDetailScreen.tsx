@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Badge, type Day1BadgeTone } from '@/components/atoms/Day1Badge';
@@ -8,11 +9,13 @@ import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Radius, Spacing } from '@/constants/theme';
 import { longDateLabel, todayISODate } from '@/features/activities/dateUtils';
+import { recurrenceFromApi, recurrenceSummaryLabel } from '@/features/activities/recurrence';
 import { formatReminderLabel } from '@/features/activities/reminder';
 import { useCategories } from '@/features/activities/useCategories';
+import { getErrorMessage } from '@/lib/errors';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
-import type { Activity } from '@/features/activities/types';
+import type { Activity, ActivityRecurrence } from '@/features/activities/types';
 import type { RootStackParamList } from '@/app/navigation-types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ActivityDetail'>;
@@ -38,7 +41,39 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
   const colors = useTheme();
   const { categories } = useCategories();
   const [activity, setActivity] = useState<Activity>(route.params.activity);
+  const [recurrenceLabel, setRecurrenceLabel] = useState<string>('Esta actividad se repite');
   const [working, setWorking] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      api
+        .get<Activity>(`/activities/${route.params.activity.id}`)
+        .then((fresh) => {
+          if (active) setActivity(fresh);
+        })
+        .catch(() => {});
+      return () => {
+        active = false;
+      };
+    }, [route.params.activity.id]),
+  );
+
+  useEffect(() => {
+    if (!activity.recurrenceId) return;
+    let active = true;
+    api
+      .get<ActivityRecurrence>(`/activity-recurrences/${activity.recurrenceId}`)
+      .then((rule) => {
+        if (active) {
+          setRecurrenceLabel(recurrenceSummaryLabel(recurrenceFromApi(rule)));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [activity.recurrenceId]);
 
   const category = categories.find((c) => c.id === activity.categoryId);
   const isGymActivity = category?.key === 'gym';
@@ -47,6 +82,7 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
   const categoryPhrase = (category?.key && CATEGORY_PHRASES[category.key]) || 'Un momento para ti';
 
   async function handleToggleComplete() {
+    if (working) return;
     setWorking(true);
     try {
       const updated = isCompleted
@@ -54,7 +90,7 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
         : await api.patch<Activity>(`/activities/${activity.id}/complete`);
       setActivity(updated);
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'No se pudo actualizar la actividad.');
+      Alert.alert('Error', getErrorMessage(err, 'No se pudo actualizar la actividad.'));
     } finally {
       setWorking(false);
     }
@@ -76,7 +112,7 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
               await api.delete(`/activities/${activity.id}`);
               navigation.navigate('Main');
             } catch (err) {
-              Alert.alert('Error', err instanceof Error ? err.message : 'No se pudo eliminar.');
+              Alert.alert('Error', getErrorMessage(err, 'No se pudo eliminar.'));
             }
           },
         },
@@ -119,11 +155,11 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
           {activity.recurrenceId ? (
             <View style={styles.metadataRow}>
               <Day1Text variant="bodyRegular16">🔁</Day1Text>
-              <Day1Text variant="bodyRegular16">Esta actividad se repite</Day1Text>
+              <Day1Text variant="bodyRegular16">{recurrenceLabel}</Day1Text>
             </View>
           ) : null}
 
-          {activity.reminderMinutes ? (
+          {activity.reminderMinutes !== null ? (
             <View style={styles.metadataRow}>
               <Day1Text variant="bodyRegular16">🔔</Day1Text>
               <Day1Text variant="bodyRegular16">{formatReminderLabel(activity.reminderMinutes)}</Day1Text>

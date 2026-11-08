@@ -24,22 +24,19 @@ export function Day1ActivityList({
 }: Day1ActivityListProps) {
   const colors = useTheme();
 
-  if (activities.length === 0) {
-    return (
-      <View style={styles.empty}>
-        <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
-          No tienes actividades para hoy.
-        </Day1Text>
-      </View>
-    );
-  }
-
   return (
     <FlatList
       data={activities}
       keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.list}
+      contentContainerStyle={activities.length === 0 ? styles.emptyContainer : styles.list}
       refreshControl={refreshControl}
+      ListEmptyComponent={
+        <View style={styles.empty}>
+          <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
+            No tienes actividades programadas para este día.
+          </Day1Text>
+        </View>
+      }
       renderItem={({ item }) => (
         <Day1ActivityRow
           activity={item}
@@ -54,5 +51,6 @@ export function Day1ActivityList({
 
 const styles = StyleSheet.create({
   list: { gap: Spacing[8], padding: Spacing[16] },
-  empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: Spacing[16] },
+  emptyContainer: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: Spacing[16] },
+  empty: { justifyContent: 'center', alignItems: 'center' },
 });

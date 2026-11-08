@@ -14,8 +14,14 @@ import { Day1RecurrenceEditorModal } from '@/components/molecules/Day1Recurrence
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Radius, Spacing } from '@/constants/theme';
 import { toISODate } from '@/features/activities/dateUtils';
-import { DEFAULT_RECURRENCE, recurrenceSummaryLabel, recurrenceToApiPayload, type RecurrenceValue } from '@/features/activities/recurrence';
+import {
+  DEFAULT_RECURRENCE,
+  recurrenceSummaryLabel,
+  recurrenceToApiPayload,
+  type RecurrenceValue,
+} from '@/features/activities/recurrence';
 import { useCategories } from '@/features/activities/useCategories';
+import { getErrorMessage } from '@/lib/errors';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import type { RootStackParamList } from '@/app/navigation-types';
@@ -30,7 +36,8 @@ function formatTime(date: Date): string {
 
 export function CreateActivityScreen({ navigation }: Props) {
   const colors = useTheme();
-  const { categories, isLoading: loadingCategories } = useCategories();
+  const { categories, isLoading: loadingCategories, error: categoriesError, reload: reloadCategories } =
+    useCategories();
 
   const [title, setTitle] = useState('');
   const [categoryId, setCategoryId] = useState<number | null>(null);
@@ -45,9 +52,40 @@ export function CreateActivityScreen({ navigation }: Props) {
   const [saving, setSaving] = useState(false);
   const hasFailedOnce = useRef(false);
 
+  function handleChangeStartTime(nextTime: Date) {
+    setStartTime(nextTime);
+    setError(null);
+  }
+
+  function handleClearStartTime() {
+    setStartTime(null);
+    setDurationMinutes(null);
+    setError(null);
+  }
+
+  function handleEnableDuration() {
+    if (!startTime) {
+      setError('Elige primero una hora de inicio para definir la duración.');
+      return;
+    }
+    setError(null);
+    setDurationMinutes(20);
+  }
+
   async function handleCreate() {
+    if (saving) return;
+
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
+      setError('Escribe el nombre de la actividad.');
+      return;
+    }
     if (!categoryId) {
       setError('Elige una categoría.');
+      return;
+    }
+    if (durationMinutes !== null && !startTime) {
+      setError('La duración requiere una hora de inicio.');
       return;
     }
     if (recurrence.frequency === 'WEEKLY_DAYS' && recurrence.daysOfWeek.length === 0) {
@@ -55,20 +93,26 @@ export function CreateActivityScreen({ navigation }: Props) {
       return;
     }
 
+    const date = toISODate(startDate);
+    if (recurrence.endDate && recurrence.endDate < date) {
+      setError('La fecha de finalización no puede ser anterior a la fecha de inicio.');
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
-    const date = toISODate(startDate);
     const timeValue = startTime ? formatTime(startTime) : undefined;
+    const trimmedDescription = description.trim() || undefined;
 
     try {
       if (recurrence.frequency !== 'NONE') {
         await api.post('/activity-recurrences', {
           categoryId,
-          title,
+          title: trimmedTitle,
           startTime: timeValue,
           durationMinutes: durationMinutes ?? undefined,
-          description: description || undefined,
+          description: trimmedDescription,
           reminderMinutes: reminderMinutes ?? undefined,
           startDate: date,
           endDate: recurrence.endDate || undefined,
@@ -77,19 +121,19 @@ export function CreateActivityScreen({ navigation }: Props) {
       } else {
         await api.post('/activities', {
           categoryId,
-          title,
+          title: trimmedTitle,
           scheduledDate: date,
           startTime: timeValue,
           durationMinutes: durationMinutes ?? undefined,
-          description: description || undefined,
+          description: trimmedDescription,
           reminderMinutes: reminderMinutes ?? undefined,
         });
       }
-      
+
       navigation.goBack();
     } catch (err) {
       hasFailedOnce.current = true;
-      setError(err instanceof Error ? err.message : 'No se pudo crear la actividad.');
+      setError(getErrorMessage(err, 'No se pudo crear la actividad.'));
     } finally {
       setSaving(false);
     }
@@ -97,7 +141,7 @@ export function CreateActivityScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Day1Button label="← Volver" variant="ghost" onPress={() => navigation.goBack()} />
         </View>
@@ -110,10 +154,7 @@ export function CreateActivityScreen({ navigation }: Props) {
         </View>
 
         {error ? (
-          <Day1InlineNotice
-            title="No pudimos guardar tu actividad"
-            message="Conservamos lo que escribiste. Revisa tu conexión y vuelve a intentarlo."
-          />
+          <Day1InlineNotice title="No pudimos guardar tu actividad" message={error} />
         ) : null}
 
         <Day1TextField
@@ -121,11 +162,19 @@ export function CreateActivityScreen({ navigation }: Props) {
           value={title}
           onChangeText={setTitle}
           placeholder="Ej: Estudiar inglés"
+          maxLength={120}
         />
 
         <View style={styles.block}>
           <Day1Text variant="labelMedium14">Categoría</Day1Text>
-          {loadingCategories ? (
+          {categoriesError ? (
+            <View style={styles.block}>
+              <Day1Text variant="labelRegular14" color={colors.statusError}>
+                {categoriesError}
+              </Day1Text>
+              <Day1Button label="Reintentar" variant="secondary" onPress={reloadCategories} />
+            </View>
+          ) : loadingCategories ? (
             <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
               Cargando categorías...
             </Day1Text>
@@ -142,14 +191,20 @@ export function CreateActivityScreen({ navigation }: Props) {
             onChange={setStartDate}
             minimumDate={new Date()}
           />
-          <Day1DateField label="Hora opcional" mode="time" value={startTime} onChange={setStartTime} />
+          <Day1DateField
+            label="Hora opcional"
+            mode="time"
+            value={startTime}
+            onChange={handleChangeStartTime}
+            onClear={handleClearStartTime}
+          />
         </View>
 
         <View style={styles.block}>
           <Day1Text variant="labelMedium14">Duración opcional</Day1Text>
           {durationMinutes === null ? (
             <Pressable
-              onPress={() => setDurationMinutes(20)}
+              onPress={handleEnableDuration}
               style={[styles.navRow, { backgroundColor: colors.surfaceCard, borderColor: colors.borderControl }]}>
               <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
                 Sin definir
@@ -189,6 +244,7 @@ export function CreateActivityScreen({ navigation }: Props) {
           placeholder="Practicar conversación durante 20 minutos."
           multiline
           numberOfLines={3}
+          maxLength={1000}
           style={styles.descriptionInput}
         />
 
@@ -200,7 +256,7 @@ export function CreateActivityScreen({ navigation }: Props) {
           label={saving ? 'Guardando...' : hasFailedOnce.current ? 'Volver a intentar' : 'Guardar actividad'}
           variant="primary"
           onPress={handleCreate}
-          disabled={saving || !title || !categoryId}
+          disabled={saving || !title.trim() || !categoryId}
         />
       </ScrollView>
 

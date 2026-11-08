@@ -30,7 +30,7 @@ export function EditProfileScreen({ navigation }: Props) {
       setDisplayName(profile.displayName ?? '');
       setAvatarUrl(profile.avatarUrl ?? '');
     }
-  }, [profile?.id]);
+  }, [profile]);
 
   async function handleSave() {
     if (saving) return;
