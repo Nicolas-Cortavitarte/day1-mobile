@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -21,14 +21,21 @@ export function ProgresoScreen({ navigation }: Props) {
   const colors = useTheme();
   const { stats, isLoading: loadingStats, error: statsError, reload: reloadStats } = useActivityStats();
   const { history, isLoading: loadingHistory, error: historyError, reload: reloadHistory } = useWorkoutHistory();
-  const { exercises } = useExercises();
+  const { exercises, error: exercisesError, reload: reloadExercises } = useExercises();
+
+  const reloadAll = useCallback(() => {
+    reloadStats();
+    reloadHistory();
+    reloadExercises();
+  }, [reloadStats, reloadHistory, reloadExercises]);
 
   useFocusEffect(
     useCallback(() => {
-      reloadStats();
-      reloadHistory();
-    }, [reloadStats, reloadHistory]),
+      reloadAll();
+    }, [reloadAll]),
   );
+
+  const isRefreshing = (loadingStats && !!stats) || (loadingHistory && history.length > 0);
 
   const reached = stats ? reachedMilestones(stats.totalCompleted) : [];
   const next = stats ? nextMilestone(stats.totalCompleted) : null;
@@ -36,16 +43,23 @@ export function ProgresoScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={reloadAll} tintColor={colors.actionPrimary} />
+        }>
         <Day1Text variant="heading26">Progreso</Day1Text>
 
         <Day1Text variant="bodySemiBold16">Estadísticas</Day1Text>
 
-        {statsError ? (
-          <Day1Text variant="labelRegular14" color={colors.statusError}>
-            {statsError}
-          </Day1Text>
-        ) : loadingStats || !stats ? (
+        {statsError && !stats ? (
+          <View style={styles.errorBox}>
+            <Day1Text variant="labelRegular14" color={colors.statusError}>
+              {statsError}
+            </Day1Text>
+            <Day1Button label="Reintentar" variant="secondary" onPress={reloadStats} />
+          </View>
+        ) : !stats ? (
           <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
             Cargando estadísticas...
           </Day1Text>
@@ -98,7 +112,7 @@ export function ProgresoScreen({ navigation }: Props) {
             <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
               {next
                 ? `${stats.totalCompleted}/${next} actividades completadas para el próximo hito`
-                : `¡Superaste los ${MILESTONES[MILESTONES.length - 1]} hitos! 🎉`}
+                : `¡Superaste las ${MILESTONES[MILESTONES.length - 1]} actividades completadas! 🎉`}
             </Day1Text>
             <View style={styles.badgeRow}>
               {MILESTONES.map((milestone) => (
@@ -123,11 +137,14 @@ export function ProgresoScreen({ navigation }: Props) {
           Historial de sesiones
         </Day1Text>
 
-        {historyError ? (
-          <Day1Text variant="labelRegular14" color={colors.statusError}>
-            {historyError}
-          </Day1Text>
-        ) : loadingHistory ? (
+        {historyError && history.length === 0 ? (
+          <View style={styles.errorBox}>
+            <Day1Text variant="labelRegular14" color={colors.statusError}>
+              {historyError}
+            </Day1Text>
+            <Day1Button label="Reintentar" variant="secondary" onPress={reloadHistory} />
+          </View>
+        ) : loadingHistory && history.length === 0 ? (
           <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
             Cargando historial...
           </Day1Text>
@@ -159,14 +176,29 @@ export function ProgresoScreen({ navigation }: Props) {
           Evolución por ejercicio
         </Day1Text>
 
-        {exercises.map((exercise) => (
-          <Day1Button
-            key={exercise.id}
-            label={exercise.name}
-            variant="ghost"
-            onPress={() => navigation.navigate('ExerciseProgress', { exerciseId: exercise.id, exerciseName: exercise.name })}
-          />
-        ))}
+        {exercisesError && exercises.length === 0 ? (
+          <View style={styles.errorBox}>
+            <Day1Text variant="labelRegular14" color={colors.statusError}>
+              {exercisesError}
+            </Day1Text>
+            <Day1Button label="Reintentar" variant="secondary" onPress={reloadExercises} />
+          </View>
+        ) : exercises.length === 0 ? (
+          <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
+            Cuando agregues ejercicios a una sesión, aparecerán aquí.
+          </Day1Text>
+        ) : (
+          exercises.map((exercise) => (
+            <Day1Button
+              key={exercise.id}
+              label={exercise.name}
+              variant="ghost"
+              onPress={() =>
+                navigation.navigate('ExerciseProgress', { exerciseId: exercise.id, exerciseName: exercise.name })
+              }
+            />
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -177,6 +209,7 @@ const styles = StyleSheet.create({
   content: { padding: Spacing[16], gap: Spacing[8] },
   card: { gap: Spacing[4], paddingBottom: Spacing[8], borderBottomWidth: 1 },
   sectionSpacing: { marginTop: Spacing[16] },
+  errorBox: { gap: Spacing[8] },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing[8] },
   statCard: { width: '47%', padding: Spacing[12], borderRadius: Radius[14], borderWidth: 1, gap: Spacing[4] },
   categoryRow: { width: '100%', gap: Spacing[4], marginTop: Spacing[4] },

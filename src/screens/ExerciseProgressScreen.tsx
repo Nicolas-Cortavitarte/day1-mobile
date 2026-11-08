@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -16,7 +16,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ExerciseProgress'>;
 export function ExerciseProgressScreen({ route, navigation }: Props) {
   const colors = useTheme();
   const { exerciseId, exerciseName } = route.params;
-  const { progress, isLoading, error } = useExerciseProgress(exerciseId);
+  const { progress, isLoading, error, reload } = useExerciseProgress(exerciseId);
 
   const maxWeight = Math.max(0, ...progress.map((p) => p.bestWeightValue ?? 0));
   const maxReps = Math.max(0, ...progress.map((p) => p.reps ?? 0));
@@ -24,7 +24,15 @@ export function ExerciseProgressScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <View style={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading && progress.length > 0}
+            onRefresh={reload}
+            tintColor={colors.actionPrimary}
+          />
+        }>
         <View style={styles.header}>
           <Day1Button label="Volver" variant="ghost" onPress={() => navigation.goBack()} />
         </View>
@@ -32,10 +40,13 @@ export function ExerciseProgressScreen({ route, navigation }: Props) {
         <Day1Text variant="heading26">{exerciseName}</Day1Text>
 
         {error ? (
-          <Day1Text variant="labelRegular14" color={colors.statusError}>
-            {error}
-          </Day1Text>
-        ) : isLoading ? (
+          <View style={styles.errorBox}>
+            <Day1Text variant="labelRegular14" color={colors.statusError}>
+              {error}
+            </Day1Text>
+            <Day1Button label="Reintentar" variant="secondary" onPress={reload} />
+          </View>
+        ) : isLoading && progress.length === 0 ? (
           <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
             Cargando progreso...
           </Day1Text>
@@ -64,15 +75,16 @@ export function ExerciseProgressScreen({ route, navigation }: Props) {
             );
           })
         )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  content: { flex: 1, padding: Spacing[16], gap: Spacing[12] },
+  content: { padding: Spacing[16], gap: Spacing[12] },
   header: { flexDirection: 'row' },
   row: { gap: Spacing[4] },
+  errorBox: { gap: Spacing[8] },
   date: { textTransform: 'capitalize' },
 });
