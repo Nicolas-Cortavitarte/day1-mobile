@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, type PressableProps, type ViewStyle } from 'react-native';
+import { Animated, Pressable, StyleSheet, type PressableProps, type ViewStyle } from 'react-native';
 
+import { usePressScale } from '@/hooks/use-press-scale';
 import { useTheme } from '@/hooks/use-theme';
 import { MinTouchTarget, Radius, Spacing } from '@/constants/theme';
 import { Day1Icon, type Day1IconName } from './Day1Icon';
@@ -22,9 +23,12 @@ export function Day1Button({
   disabled,
   style,
   textColor: textColorOverride,
+  onPressIn,
+  onPressOut,
   ...rest
 }: Day1ButtonProps) {
   const colors = useTheme();
+  const { scaleStyle, onPressIn: scaleIn, onPressOut: scaleOut } = usePressScale(0.97);
 
   const backgroundColor = (pressed: boolean) => {
     if (disabled) return colors.surfaceDisabled;
@@ -42,23 +46,32 @@ export function Day1Button({
   };
 
   return (
-    <Pressable
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: !!disabled }}
-      style={({ pressed }) => [
-        styles.base,
-        { backgroundColor: backgroundColor(pressed) },
-        pressed && variant !== 'primary' && !disabled && styles.pressedFallback,
-        style,
-      ]}
-      {...rest}>
-      {icon ? <Day1Icon name={icon} size={18} color={textColor()} /> : null}
-      <Day1Text variant="bodySemiBold16" color={textColor()}>
-        {label}
-      </Day1Text>
-    </Pressable>
+    <Animated.View style={[scaleStyle, style]}>
+      <Pressable
+        disabled={disabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: !!disabled }}
+        onPressIn={(event) => {
+          scaleIn();
+          onPressIn?.(event);
+        }}
+        onPressOut={(event) => {
+          scaleOut();
+          onPressOut?.(event);
+        }}
+        style={({ pressed }) => [
+          styles.base,
+          { backgroundColor: backgroundColor(pressed) },
+          pressed && variant !== 'primary' && !disabled && styles.pressedFallback,
+        ]}
+        {...rest}>
+        {icon ? <Day1Icon name={icon} size={18} color={textColor()} /> : null}
+        <Day1Text variant="bodySemiBold16" color={textColor()}>
+          {label}
+        </Day1Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 

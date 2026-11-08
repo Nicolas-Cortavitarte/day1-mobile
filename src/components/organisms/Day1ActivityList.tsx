@@ -1,9 +1,11 @@
 import type { ReactElement } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 
+import { ANIMATIONS } from '@/assets/animations';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 import type { Activity, Category } from '@/features/activities/types';
+import { Day1Lottie } from '../atoms/Day1Lottie';
 import { Day1Text } from '../atoms/Day1Text';
 import { Day1ActivityRow } from '../molecules/Day1ActivityRow';
 
@@ -32,7 +34,8 @@ export function Day1ActivityList({
       refreshControl={refreshControl}
       ListEmptyComponent={
         <View style={styles.empty}>
-          <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
+          <Day1Lottie source={ANIMATIONS.emptyCalm} size={96} />
+          <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable} style={styles.centerText}>
             No tienes actividades programadas para este día.
           </Day1Text>
         </View>
@@ -52,5 +55,6 @@ export function Day1ActivityList({
 const styles = StyleSheet.create({
   list: { gap: Spacing[8], padding: Spacing[16] },
   emptyContainer: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: Spacing[16] },
-  empty: { justifyContent: 'center', alignItems: 'center' },
+  empty: { justifyContent: 'center', alignItems: 'center', gap: Spacing[12] },
+  centerText: { textAlign: 'center' },
 });

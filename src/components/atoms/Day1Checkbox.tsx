@@ -1,5 +1,7 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Pressable, StyleSheet } from 'react-native';
 
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useTheme } from '@/hooks/use-theme';
 import { MinTouchTarget, Radius } from '@/constants/theme';
 import { Day1Icon } from './Day1Icon';
@@ -15,6 +17,35 @@ const TOUCH_MARGIN = (MinTouchTarget - BOX_SIZE) / 2;
 
 export function Day1Checkbox({ checked, onPress, accessibilityLabel }: Day1CheckboxProps) {
   const colors = useTheme();
+  const reducedMotion = useReducedMotion();
+  const scale = useRef(new Animated.Value(1)).current;
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (reducedMotion) return;
+
+    if (checked) {
+      scale.setValue(0.84);
+      Animated.spring(scale, {
+        toValue: 1,
+        speed: 32,
+        bounciness: 10,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      scale.setValue(0.92);
+      Animated.spring(scale, {
+        toValue: 1,
+        speed: 45,
+        bounciness: 0,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [checked, reducedMotion, scale]);
 
   return (
     <Pressable
@@ -23,16 +54,17 @@ export function Day1Checkbox({ checked, onPress, accessibilityLabel }: Day1Check
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ checked }}
       style={styles.touch}>
-      <View
+      <Animated.View
         style={[
           styles.box,
           {
+            transform: [{ scale }],
             backgroundColor: checked ? colors.actionPrimary : 'transparent',
             borderColor: checked ? colors.actionPrimary : colors.borderControl,
           },
         ]}>
         {checked ? <Day1Icon name="check" size={16} strokeWidth={3} color={colors.textOnAction} /> : null}
-      </View>
+      </Animated.View>
     </Pressable>
   );
 }

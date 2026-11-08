@@ -3,7 +3,9 @@ import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
+import { ANIMATIONS } from '@/assets/animations';
 import { Day1Button } from '@/components/atoms/Day1Button';
+import { Day1Lottie } from '@/components/atoms/Day1Lottie';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ProgressBar } from '@/components/molecules/Day1ProgressBar';
 import { Spacing, Radius } from '@/constants/theme';
@@ -102,9 +104,10 @@ export function ProgresoScreen({ navigation }: Props) {
           </View>
         )}
 
-        <Day1Text variant="bodySemiBold16" style={styles.sectionSpacing}>
-          Mi camino
-        </Day1Text>
+        <View style={[styles.milestoneHeader, styles.sectionSpacing]}>
+          <Day1Text variant="bodySemiBold16">Mi camino</Day1Text>
+          {reached.length > 0 ? <Day1Lottie source={ANIMATIONS.milestone} size={36} /> : null}
+        </View>
 
         {stats ? (
           <View style={styles.milestoneBox}>
@@ -112,7 +115,7 @@ export function ProgresoScreen({ navigation }: Props) {
             <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
               {next
                 ? `${stats.totalCompleted}/${next} actividades completadas para el próximo hito`
-                : `¡Superaste las ${MILESTONES[MILESTONES.length - 1]} actividades completadas! 🎉`}
+                : `¡Superaste las ${MILESTONES[MILESTONES.length - 1]} actividades completadas!`}
             </Day1Text>
             <View style={styles.badgeRow}>
               {MILESTONES.map((milestone) => (
@@ -124,8 +127,7 @@ export function ProgresoScreen({ navigation }: Props) {
                       backgroundColor: reached.includes(milestone) ? colors.surfaceBrandSoft : colors.surfaceDisabled,
                       borderColor: reached.includes(milestone) ? colors.actionPrimary : colors.borderSubtle,
                     },
-                  ]}
-                >
+                  ]}>
                   <Day1Text variant="labelMedium14">{milestone}</Day1Text>
                 </View>
               ))}
@@ -213,6 +215,7 @@ const styles = StyleSheet.create({
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing[8] },
   statCard: { width: '47%', padding: Spacing[12], borderRadius: Radius[14], borderWidth: 1, gap: Spacing[4] },
   categoryRow: { width: '100%', gap: Spacing[4], marginTop: Spacing[4] },
+  milestoneHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   milestoneBox: { gap: Spacing[8] },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing[8] },
   badge: { paddingHorizontal: Spacing[12], paddingVertical: Spacing[6], borderRadius: Radius[20], borderWidth: 1 },

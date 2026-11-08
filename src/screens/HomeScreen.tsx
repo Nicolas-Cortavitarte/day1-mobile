@@ -3,9 +3,10 @@ import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
+import { ANIMATIONS } from '@/assets/animations';
 import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1FloatingActionButton } from '@/components/atoms/Day1FloatingActionButton';
-import { Day1IconBadge } from '@/components/atoms/Day1IconBadge';
+import { Day1Lottie } from '@/components/atoms/Day1Lottie';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ActivityRow } from '@/components/molecules/Day1ActivityRow';
 import { Day1DailyProgressSummary } from '@/components/molecules/Day1DailyProgressSummary';
@@ -54,7 +55,8 @@ export function HomeScreen({ navigation }: Props) {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
       {error ? (
         <View style={styles.errorBox}>
-          <Day1Text variant="labelRegular14" color={colors.statusError}>
+          <Day1Lottie source={ANIMATIONS.alert} size={72} />
+          <Day1Text variant="labelRegular14" color={colors.statusError} style={styles.centerText}>
             {error}
           </Day1Text>
           <Day1Button label="Reintentar" variant="secondary" onPress={reload} />
@@ -104,7 +106,7 @@ export function HomeScreen({ navigation }: Props) {
               </View>
 
               <View style={styles.emptyState}>
-                <Day1IconBadge icon="sun" />
+                <Day1Lottie source={ANIMATIONS.emptyCalm} size={110} />
                 <Day1Text variant="section20" style={styles.centerText}>
                   Hoy no hay actividades
                 </Day1Text>
