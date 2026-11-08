@@ -1,9 +1,8 @@
-import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 import { Radius, Spacing } from '@/constants/theme';
 import type { Category } from '@/features/activities/types';
-import { Day1CategoryDot } from '../atoms/Day1CategoryDot';
 import { Day1Text } from '../atoms/Day1Text';
 
 type Day1CategoryPickerProps = {
@@ -16,7 +15,7 @@ export function Day1CategoryPicker({ categories, selectedCategoryId, onSelect }:
   const colors = useTheme();
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+    <View style={styles.row}>
       {categories.map((category) => {
         const isSelected = category.id === selectedCategoryId;
         return (
@@ -30,17 +29,25 @@ export function Day1CategoryPicker({ categories, selectedCategoryId, onSelect }:
                 borderColor: isSelected ? colors.actionPrimary : colors.borderSubtle,
               },
             ]}>
-            <Day1CategoryDot color={category.color} />
-            <Day1Text variant="labelMedium14">{category.name}</Day1Text>
+            {isSelected ? (
+              <Day1Text variant="labelSemiBold14" color={colors.actionPressed}>
+                ✓
+              </Day1Text>
+            ) : null}
+            <Day1Text
+              variant="labelMedium14"
+              color={isSelected ? colors.actionPressed : colors.textPrimary}>
+              {category.name}
+            </Day1Text>
           </Pressable>
         );
       })}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { gap: Spacing[8], paddingVertical: Spacing[4] },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing[8], paddingVertical: Spacing[4] },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',

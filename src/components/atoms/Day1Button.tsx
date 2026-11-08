@@ -10,9 +10,10 @@ type Day1ButtonProps = Omit<PressableProps, 'style'> & {
   label: string;
   variant?: Day1ButtonVariant;
   style?: ViewStyle;
+  textColor?: string;
 };
 
-export function Day1Button({ label, variant = 'primary', disabled, style, ...rest }: Day1ButtonProps) {
+export function Day1Button({ label, variant = 'primary', disabled, style, textColor: textColorOverride, ...rest }: Day1ButtonProps) {
   const colors = useTheme();
 
   const backgroundColor = (pressed: boolean) => {
@@ -25,6 +26,7 @@ export function Day1Button({ label, variant = 'primary', disabled, style, ...res
 
   const textColor = () => {
     if (disabled) return colors.textSecondaryReadable;
+    if (textColorOverride) return textColorOverride;
     if (variant === 'primary' || variant === 'destructive') return colors.textOnAction;
     return colors.actionPressed;
   };
