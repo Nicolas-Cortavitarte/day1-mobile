@@ -16,6 +16,8 @@ export type Activity = {
   scheduledDate: string;
   startTime: string | null;
   durationMinutes: number | null;
+  reminderMinutes: number | null;
+  recurrenceId: string | null;
   completedAt: string | null;
   createdAt: string;
   updatedAt: string;
