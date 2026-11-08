@@ -1,4 +1,7 @@
 export function formatReminderLabel(minutes: number): string {
+  if (minutes === 0) {
+    return 'A la hora de inicio';
+  }
   if (minutes >= 1440 && minutes % 1440 === 0) {
     const days = minutes / 1440;
     return days === 1 ? '1 día antes' : `${days} días antes`;

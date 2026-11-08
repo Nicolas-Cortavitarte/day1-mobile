@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -8,19 +8,16 @@ import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Spacing } from '@/constants/theme';
 import { checkActivityConflicts } from '@/features/activities/checkConflicts';
+import { todayISODate } from '@/features/activities/dateUtils';
+import { getErrorMessage } from '@/lib/errors';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import type { RootStackParamList } from '@/app/navigation-types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RescheduleActivity'>;
 
-function todayISODate() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export function RescheduleActivityScreen({ route, navigation }: Props) {
   const colors = useTheme();
@@ -32,20 +29,34 @@ export function RescheduleActivityScreen({ route, navigation }: Props) {
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
+    if (saving) return;
     setError(null);
 
-    if (toDate < todayISODate()) {
+    const normalizedDate = toDate.trim();
+    const normalizedTime = toTime.trim();
+
+    if (!ISO_DATE_REGEX.test(normalizedDate)) {
+      setError('Escribe la fecha en formato YYYY-MM-DD.');
+      return;
+    }
+
+    if (normalizedDate < todayISODate()) {
       setError('No puedes reprogramar una actividad a una fecha pasada.');
+      return;
+    }
+
+    if (normalizedTime && !TIME_REGEX.test(normalizedTime)) {
+      setError('Escribe la hora en formato HH:mm (por ejemplo, 09:00).');
       return;
     }
 
     setSaving(true);
 
     try {
-      if (toTime && activity.durationMinutes) {
+      if (normalizedTime) {
         const conflicts = await checkActivityConflicts({
-          date: toDate,
-          startTime: toTime,
+          date: normalizedDate,
+          startTime: normalizedTime,
           durationMinutes: activity.durationMinutes,
           excludeActivityId: activity.id,
         });
@@ -57,12 +68,12 @@ export function RescheduleActivityScreen({ route, navigation }: Props) {
       }
 
       await api.patch(`/activities/${activity.id}/reschedule`, {
-        toDate,
-        toTime: toTime || undefined,
+        toDate: normalizedDate,
+        toTime: normalizedTime || null,
       });
       navigation.navigate('Main');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo reprogramar.');
+      setError(getErrorMessage(err, 'No se pudo reprogramar.'));
     } finally {
       setSaving(false);
     }
@@ -70,7 +81,7 @@ export function RescheduleActivityScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Day1Button label="Cancelar" variant="ghost" onPress={() => navigation.goBack()} />
         </View>
@@ -84,6 +95,8 @@ export function RescheduleActivityScreen({ route, navigation }: Props) {
           label="Nueva fecha (YYYY-MM-DD)"
           value={toDate}
           onChangeText={setToDate}
+          autoCapitalize="none"
+          autoCorrect={false}
           placeholder="2026-11-05"
         />
 
@@ -91,6 +104,8 @@ export function RescheduleActivityScreen({ route, navigation }: Props) {
           label="Nueva hora (HH:mm, opcional)"
           value={toTime}
           onChangeText={setToTime}
+          autoCapitalize="none"
+          autoCorrect={false}
           placeholder="09:00"
           keyboardType="numbers-and-punctuation"
         />
@@ -105,15 +120,15 @@ export function RescheduleActivityScreen({ route, navigation }: Props) {
           label={saving ? 'Guardando...' : 'Confirmar nueva fecha'}
           variant="primary"
           onPress={handleSave}
-          disabled={saving || !toDate}
+          disabled={saving || !toDate.trim()}
         />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  content: { flex: 1, padding: Spacing[16], gap: Spacing[16] },
+  content: { padding: Spacing[16], gap: Spacing[16] },
   header: { flexDirection: 'row' },
 });

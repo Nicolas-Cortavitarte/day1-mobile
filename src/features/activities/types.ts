@@ -23,6 +23,23 @@ export type Activity = {
   updatedAt: string;
 };
 
+export type ActivityRecurrence = {
+  id: string;
+  userId: string;
+  categoryId: number;
+  title: string;
+  description: string | null;
+  startTime: string | null;
+  durationMinutes: number | null;
+  reminderMinutes: number | null;
+  frequency: 'DAILY' | 'WEEKLY';
+  intervalCount: number;
+  daysOfWeek: number[];
+  startDate: string;
+  endDate: string | null;
+  generatedUntil: string;
+};
+
 export type CategoryStat = {
   categoryId: number;
   categoryName: string;

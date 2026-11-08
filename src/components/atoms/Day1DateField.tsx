@@ -12,6 +12,7 @@ type Day1DateFieldProps = {
   mode: 'date' | 'time';
   value: Date | null;
   onChange: (date: Date) => void;
+  onClear?: () => void;
   placeholder?: string;
   minimumDate?: Date;
   errorBorder?: boolean;
@@ -32,6 +33,7 @@ export function Day1DateField({
   mode,
   value,
   onChange,
+  onClear,
   placeholder,
   minimumDate,
   errorBorder,
@@ -61,7 +63,16 @@ export function Day1DateField({
 
   return (
     <View style={[styles.field, style]}>
-      <Day1Text variant="labelMedium14">{label}</Day1Text>
+      <View style={styles.labelRow}>
+        <Day1Text variant="labelMedium14">{label}</Day1Text>
+        {value && onClear ? (
+          <Pressable onPress={onClear} hitSlop={8}>
+            <Day1Text variant="labelRegular12" color={colors.statusError}>
+              Quitar
+            </Day1Text>
+          </Pressable>
+        ) : null}
+      </View>
 
       <Pressable
         onPress={openPicker}
@@ -111,6 +122,7 @@ export function Day1DateField({
 
 const styles = StyleSheet.create({
   field: { gap: 6, flex: 1 },
+  labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   shell: {
     flexDirection: 'row',
     alignItems: 'center',

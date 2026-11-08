@@ -1,4 +1,5 @@
 import { longDateLabel } from './dateUtils';
+import type { ActivityRecurrence } from './types';
 
 export type RecurrenceFrequency = 'NONE' | 'DAILY' | 'WEEKLY_DAYS' | 'CUSTOM_DAYS';
 
@@ -74,6 +75,31 @@ export function recurrenceSummaryLabel(value: RecurrenceValue): string {
   }
 }
 
+export function recurrenceFromApi(rule: ActivityRecurrence): RecurrenceValue {
+  if (rule.frequency === 'WEEKLY') {
+    return {
+      frequency: 'WEEKLY_DAYS',
+      daysOfWeek: rule.daysOfWeek,
+      intervalDays: rule.intervalCount,
+      endDate: rule.endDate,
+    };
+  }
+  if (rule.intervalCount > 1) {
+    return {
+      frequency: 'CUSTOM_DAYS',
+      daysOfWeek: [],
+      intervalDays: rule.intervalCount,
+      endDate: rule.endDate,
+    };
+  }
+  return {
+    frequency: 'DAILY',
+    daysOfWeek: [],
+    intervalDays: 1,
+    endDate: rule.endDate,
+  };
+}
+
 export function recurrenceToApiPayload(value: RecurrenceValue) {
   if (value.frequency === 'WEEKLY_DAYS') {
     return { frequency: 'WEEKLY' as const, intervalCount: 1, daysOfWeek: value.daysOfWeek };
@@ -81,6 +107,5 @@ export function recurrenceToApiPayload(value: RecurrenceValue) {
   if (value.frequency === 'CUSTOM_DAYS') {
     return { frequency: 'DAILY' as const, intervalCount: value.intervalDays, daysOfWeek: undefined };
   }
-  // DAILY ("Todos los días")
   return { frequency: 'DAILY' as const, intervalCount: 1, daysOfWeek: undefined };
 }
