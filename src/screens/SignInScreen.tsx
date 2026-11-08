@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
+import { Day1Icon } from '@/components/atoms/Day1Icon';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { useTheme } from '@/hooks/use-theme';
@@ -39,6 +40,17 @@ export function SignInScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        {navigation.canGoBack() ? (
+          <View style={styles.backRow}>
+            <Day1Button
+              label="Volver"
+              icon="arrowLeft"
+              variant="ghost"
+              onPress={() => navigation.goBack()}
+            />
+          </View>
+        ) : null}
+
         <View style={styles.header}>
           <Day1Text variant="heading28">Qué bueno verte.</Day1Text>
           <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
@@ -47,6 +59,7 @@ export function SignInScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.brand}>
+          <Day1Icon name="sprout" size={38} color={colors.actionPrimary} strokeWidth={2.2} />
           <Day1Text variant="display46" color={colors.actionPressed}>
             Day1
           </Day1Text>
@@ -107,7 +120,7 @@ export function SignInScreen({ navigation }: Props) {
           <Day1Button
             label="Crear mi cuenta"
             variant="secondary"
-            onPress={() => navigation.navigate('SignUp')}
+            onPress={() => navigation.replace('SignUp')}
           />
         </View>
 
@@ -122,8 +135,9 @@ export function SignInScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   content: { flexGrow: 1, justifyContent: 'center', padding: Spacing[24], gap: Spacing[24] },
+  backRow: { alignItems: 'flex-start' },
   header: { gap: Spacing[12] },
-  brand: { alignItems: 'flex-start', justifyContent: 'center', minHeight: 92 },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: Spacing[10], minHeight: 72 },
   fields: { gap: Spacing[20] },
   forgotLink: { textAlign: 'right' },
   signUpBlock: { gap: Spacing[8] },

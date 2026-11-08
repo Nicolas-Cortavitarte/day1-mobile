@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
+import { Day1Icon, type Day1IconName } from '@/components/atoms/Day1Icon';
 import { Day1Text } from '@/components/atoms/Day1Text';
-import { Spacing } from '@/constants/theme';
+import { Day1ConfirmDeleteModal } from '@/components/molecules/Day1ConfirmDeleteModal';
+import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
+import { Radius, Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/AuthProvider';
 import { useProfile } from '@/features/profile/useProfile';
 import { api } from '@/lib/api';
@@ -14,63 +17,150 @@ import type { MainTabScreenProps } from '@/app/navigation-types';
 
 type Props = MainTabScreenProps<'Perfil'>;
 
+type MenuItem = {
+  label: string;
+  icon: Day1IconName;
+  onPress: () => void;
+};
+
 export function PerfilScreen({ navigation }: Props) {
   const colors = useTheme();
   const { signOut } = useSession();
   const { profile } = useProfile();
   const [deleting, setDeleting] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const initials = (profile?.displayName || profile?.email || 'D')[0].toUpperCase();
 
   async function deleteAccount() {
+    if (deleting) return;
     setDeleting(true);
+    setDeleteError(null);
     try {
       await api.delete('/me');
     } catch (err) {
       setDeleting(false);
-      Alert.alert('No se pudo eliminar la cuenta', getErrorMessage(err, 'Inténtalo de nuevo.'));
+      setConfirmVisible(false);
+      setDeleteError(getErrorMessage(err, 'No se pudo eliminar la cuenta. Inténtalo de nuevo.'));
       return;
     }
 
-    await signOut().catch(() => { });
+    setConfirmVisible(false);
+    await signOut().catch(() => {});
   }
 
-  function confirmDeleteAccount() {
-    Alert.alert(
-      'Eliminar cuenta',
-      'Se borrarán todas tus actividades, ejercicios y categorías. Esta acción no se puede deshacer. ¿Seguro que quieres continuar?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar cuenta', style: 'destructive', onPress: deleteAccount },
-      ],
-    );
-  }
+  const menuItems: MenuItem[] = [
+    { label: 'Editar perfil', icon: 'user', onPress: () => navigation.navigate('EditProfile') },
+    { label: 'Mis categorías', icon: 'tag', onPress: () => navigation.navigate('ManageCategories') },
+    { label: 'Apariencia', icon: 'palette', onPress: () => navigation.navigate('Appearance') },
+  ];
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.backgroundDefault }]}>
-      <View style={styles.content}>
-        <Day1Text variant="heading26">{profile?.displayName || 'Mi espacio'}</Day1Text>
-        {profile?.email ? (
-          <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>{profile.email}</Day1Text>
-        ) : null}
+      <ScrollView contentContainerStyle={styles.content}>
+        <Day1Text variant="heading26">Perfil</Day1Text>
 
-        <View style={styles.menu}>
-          <Day1Button label="Editar perfil" variant="secondary" onPress={() => navigation.navigate('EditProfile')} />
-          <Day1Button label="Mis categorías" variant="secondary" onPress={() => navigation.navigate('ManageCategories')} />
-          <Day1Button label="Apariencia" variant="secondary" onPress={() => navigation.navigate('Appearance')} />
-          <Day1Button label="Cerrar sesión" variant="ghost" onPress={signOut} disabled={deleting} />
+        <View style={[styles.profileCard, { backgroundColor: colors.surfaceCard, borderColor: colors.borderSubtle }]}>
+          <View style={[styles.avatar, { backgroundColor: colors.surfaceBrandSoft }]}>
+            <Day1Text variant="section24" color={colors.actionPressed}>
+              {initials}
+            </Day1Text>
+          </View>
+          <View style={styles.profileTexts}>
+            <Day1Text variant="section20">{profile?.displayName || 'Mi espacio'}</Day1Text>
+            {profile?.email ? (
+              <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
+                {profile.email}
+              </Day1Text>
+            ) : null}
+          </View>
+        </View>
+
+        {deleteError ? <Day1InlineNotice message={deleteError} /> : null}
+
+        <View style={[styles.menuCard, { backgroundColor: colors.surfaceCard, borderColor: colors.borderSubtle }]}>
+          {menuItems.map((item, index) => (
+            <Pressable
+              key={item.label}
+              accessibilityRole="button"
+              accessibilityLabel={item.label}
+              onPress={item.onPress}
+              style={[
+                styles.menuRow,
+                index < menuItems.length - 1 && {
+                  borderBottomColor: colors.borderSubtle,
+                  borderBottomWidth: StyleSheet.hairlineWidth,
+                },
+              ]}>
+              <View style={styles.menuRowLeft}>
+                <Day1Icon name={item.icon} size={20} color={colors.actionPrimary} />
+                <Day1Text variant="bodyRegular16">{item.label}</Day1Text>
+              </View>
+              <Day1Icon name="chevronRight" size={18} color={colors.textSecondaryReadable} />
+            </Pressable>
+          ))}
+        </View>
+
+        <View style={styles.sessionSection}>
           <Day1Button
-            label={deleting ? 'Eliminando...' : 'Eliminar cuenta'}
-            variant="destructive"
-            onPress={confirmDeleteAccount}
+            label="Cerrar sesión"
+            icon="logOut"
+            variant="secondary"
+            onPress={signOut}
+            disabled={deleting}
+          />
+          <Day1Button
+            label="Eliminar cuenta"
+            icon="trash"
+            variant="ghost"
+            textColor={colors.statusError}
+            onPress={() => setConfirmVisible(true)}
             disabled={deleting}
           />
         </View>
-      </View>
+      </ScrollView>
+
+      <Day1ConfirmDeleteModal
+        visible={confirmVisible}
+        title="¿Eliminar tu cuenta?"
+        message="Se borrarán todas tus actividades, ejercicios y categorías. Esta acción no se puede deshacer."
+        confirmLabel="Eliminar cuenta"
+        loading={deleting}
+        onConfirm={deleteAccount}
+        onCancel={() => setConfirmVisible(false)}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { flex: 1, padding: Spacing[16], gap: Spacing[12] },
-  menu: { gap: Spacing[8], marginTop: Spacing[16] },
+  content: { padding: Spacing[20], gap: Spacing[20], paddingBottom: Spacing[40] },
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[14],
+    padding: Spacing[16],
+    borderRadius: Radius[16],
+    borderWidth: 1,
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileTexts: { flex: 1, gap: 2 },
+  menuCard: { borderRadius: Radius[16], borderWidth: 1, overflow: 'hidden' },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing[16],
+    paddingVertical: Spacing[14],
+  },
+  menuRowLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing[12] },
+  sessionSection: { gap: Spacing[8], marginTop: Spacing[8] },
 });

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
+import { Day1Icon } from '@/components/atoms/Day1Icon';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { useTheme } from '@/hooks/use-theme';
@@ -60,6 +61,17 @@ export function SignUpScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        {navigation.canGoBack() ? (
+          <View style={styles.backRow}>
+            <Day1Button
+              label="Volver"
+              icon="arrowLeft"
+              variant="ghost"
+              onPress={() => navigation.goBack()}
+            />
+          </View>
+        ) : null}
+
         <View style={styles.header}>
           <Day1Text variant="heading28">Tu día uno.</Day1Text>
           <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
@@ -137,9 +149,12 @@ export function SignUpScreen({ navigation }: Props) {
         />
 
         <View style={styles.brandBlock}>
-          <Day1Text variant="heading26" color={colors.actionPressed}>
-            Day1
-          </Day1Text>
+          <View style={styles.brandRow}>
+            <Day1Icon name="sprout" size={24} color={colors.actionPrimary} strokeWidth={2.2} />
+            <Day1Text variant="heading26" color={colors.actionPressed}>
+              Day1
+            </Day1Text>
+          </View>
           <Day1Text variant="labelRegular12" color={colors.textSecondaryReadable} style={styles.centerText}>
             Tu progreso empieza contigo.
           </Day1Text>
@@ -152,8 +167,10 @@ export function SignUpScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   content: { flexGrow: 1, justifyContent: 'center', padding: Spacing[24], gap: Spacing[20] },
+  backRow: { alignItems: 'flex-start' },
   header: { gap: Spacing[12] },
   form: { gap: Spacing[20] },
   centerText: { textAlign: 'center' },
   brandBlock: { gap: Spacing[12], alignItems: 'center', paddingTop: Spacing[16] },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[8] },
 });

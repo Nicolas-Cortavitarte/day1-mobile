@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1DateField } from '@/components/atoms/Day1DateField';
+import { Day1Icon } from '@/components/atoms/Day1Icon';
 import { Day1ReminderField } from '@/components/atoms/Day1ReminderField';
 import { Day1Stepper } from '@/components/atoms/Day1Stepper';
 import { Day1Text } from '@/components/atoms/Day1Text';
@@ -143,7 +144,7 @@ export function CreateActivityScreen({ navigation }: Props) {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Day1Button label="← Volver" variant="ghost" onPress={() => navigation.goBack()} />
+          <Day1Button label="Volver" icon="arrowLeft" variant="ghost" onPress={() => navigation.goBack()} />
         </View>
 
         <View style={styles.titleBlock}>
@@ -205,16 +206,18 @@ export function CreateActivityScreen({ navigation }: Props) {
           {durationMinutes === null ? (
             <Pressable
               onPress={handleEnableDuration}
+              accessibilityRole="button"
+              accessibilityLabel="Definir duración"
               style={[styles.navRow, { backgroundColor: colors.surfaceCard, borderColor: colors.borderControl }]}>
               <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
                 Sin definir
               </Day1Text>
-              <Day1Text variant="bodyRegular16">⏱️</Day1Text>
+              <Day1Icon name="timer" size={20} color={colors.textSecondaryReadable} />
             </Pressable>
           ) : (
             <View style={[styles.durationRow, { backgroundColor: colors.surfaceCard, borderColor: colors.borderControl }]}>
               <Day1Stepper value={durationMinutes} onChange={setDurationMinutes} suffix="min" min={5} max={240} step={5} />
-              <Pressable onPress={() => setDurationMinutes(null)}>
+              <Pressable onPress={() => setDurationMinutes(null)} hitSlop={10}>
                 <Day1Text variant="labelMedium14" color={colors.statusError}>
                   Quitar
                 </Day1Text>
@@ -227,11 +230,11 @@ export function CreateActivityScreen({ navigation }: Props) {
           <Day1Text variant="labelMedium14">Repetición</Day1Text>
           <Pressable
             onPress={() => setRecurrenceModalVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`Repetición: ${recurrenceSummaryLabel(recurrence)}`}
             style={[styles.navRow, { backgroundColor: colors.surfaceCard, borderColor: colors.borderControl }]}>
             <Day1Text variant="bodyRegular16">{recurrenceSummaryLabel(recurrence)}</Day1Text>
-            <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
-              ›
-            </Day1Text>
+            <Day1Icon name="chevronRight" size={20} color={colors.textSecondaryReadable} />
           </Pressable>
         </View>
 

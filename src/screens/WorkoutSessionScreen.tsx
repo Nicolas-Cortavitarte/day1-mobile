@@ -5,9 +5,11 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1Text } from '@/components/atoms/Day1Text';
+import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
+import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Day1WorkoutExerciseCard } from '@/components/organisms/Day1WorkoutExerciseCard';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useExercises } from '@/features/workouts/useExercises';
 import { useWorkoutSession } from '@/features/workouts/useWorkoutSession';
 import { getErrorMessage } from '@/lib/errors';
@@ -108,18 +110,13 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
           />
         }>
         <View style={styles.header}>
-          <Day1Button label="Volver" variant="ghost" onPress={() => navigation.goBack()} />
+          <Day1Button label="Volver" icon="arrowLeft" variant="ghost" onPress={() => navigation.goBack()} />
         </View>
 
         <Day1Text variant="heading26">{activityTitle}</Day1Text>
 
         {error && !session ? (
-          <View style={styles.createBox}>
-            <Day1Text variant="labelRegular14" color={colors.statusError}>
-              {error}
-            </Day1Text>
-            <Day1Button label="Reintentar" variant="secondary" onPress={reload} />
-          </View>
+          <Day1ErrorState message={error} onRetry={reload} compact />
         ) : isLoading && !session ? (
           <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
             Cargando sesión...
@@ -134,16 +131,11 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
               />
             ))}
 
-            <View style={styles.addSection}>
+            <View style={[styles.addSection, { backgroundColor: colors.surfaceCard, borderColor: colors.borderSubtle }]}>
               <Day1Text variant="bodySemiBold16">Agregar ejercicio</Day1Text>
 
               {exercisesError ? (
-                <View style={styles.createBox}>
-                  <Day1Text variant="labelRegular14" color={colors.statusError}>
-                    {exercisesError}
-                  </Day1Text>
-                  <Day1Button label="Reintentar" variant="secondary" onPress={reloadExercises} />
-                </View>
+                <Day1ErrorState message={exercisesError} onRetry={reloadExercises} compact />
               ) : null}
 
               <Day1TextField
@@ -158,6 +150,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
                 <Day1Button
                   key={exercise.id}
                   label={exercise.name}
+                  icon="plus"
                   variant="secondary"
                   onPress={() => handleAddExisting(exercise.id)}
                   disabled={saving}
@@ -184,6 +177,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
                   />
                   <Day1Button
                     label={saving ? 'Guardando...' : 'Crear y agregar'}
+                    icon="plus"
                     variant="primary"
                     onPress={handleCreateAndAdd}
                     disabled={saving}
@@ -191,11 +185,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
                 </View>
               ) : null}
 
-              {actionError ? (
-                <Day1Text variant="labelRegular14" color={colors.statusError}>
-                  {actionError}
-                </Day1Text>
-              ) : null}
+              {actionError ? <Day1InlineNotice message={actionError} /> : null}
             </View>
           </>
         )}
@@ -206,8 +196,8 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  content: { padding: Spacing[16], gap: Spacing[16] },
+  content: { padding: Spacing[20], gap: Spacing[16], paddingBottom: Spacing[40] },
   header: { flexDirection: 'row' },
-  addSection: { gap: Spacing[8] },
-  createBox: { gap: Spacing[8] },
+  addSection: { padding: Spacing[16], borderRadius: Radius[16], borderWidth: 1, gap: Spacing[10] },
+  createBox: { gap: Spacing[10] },
 });
