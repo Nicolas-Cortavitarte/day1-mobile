@@ -22,7 +22,11 @@ export function Day1ActivityRow({ activity, category, onPress, onToggleComplete 
     <Pressable
       onPress={onPress}
       style={[styles.row, { backgroundColor: colors.surfaceCard, borderColor: colors.borderSubtle }]}>
-      <Day1Checkbox checked={isCompleted} onPress={onToggleComplete} />
+      <Day1Checkbox
+        checked={isCompleted}
+        onPress={onToggleComplete}
+        accessibilityLabel={isCompleted ? `Marcar ${activity.title} como pendiente` : `Completar ${activity.title}`}
+      />
       <Day1CategoryDot color={category?.color ?? colors.borderControl} />
       <View style={styles.texts}>
         <Day1Text

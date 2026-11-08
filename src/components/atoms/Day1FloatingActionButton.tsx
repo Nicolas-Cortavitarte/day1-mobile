@@ -1,8 +1,8 @@
 import { Pressable, StyleSheet, type PressableProps } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
-import { Radius } from '@/constants/theme';
-import { Day1Text } from './Day1Text';
+import { Radius, ShadowColor } from '@/constants/theme';
+import { Day1Icon } from './Day1Icon';
 
 type Day1FloatingActionButtonProps = Omit<PressableProps, 'style'>;
 
@@ -11,14 +11,14 @@ export function Day1FloatingActionButton({ ...rest }: Day1FloatingActionButtonPr
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Nueva actividad"
       style={({ pressed }) => [
         styles.fab,
         { backgroundColor: pressed ? colors.actionPressed : colors.actionPrimary },
       ]}
       {...rest}>
-      <Day1Text variant="heading28" color={colors.textOnAction} style={styles.plus}>
-        +
-      </Day1Text>
+      <Day1Icon name="plus" size={28} strokeWidth={2.5} color={colors.textOnAction} />
     </Pressable>
   );
 }
@@ -33,11 +33,10 @@ const styles = StyleSheet.create({
     borderRadius: Radius[24],
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: ShadowColor,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
   },
-  plus: { marginTop: -2 },
 });

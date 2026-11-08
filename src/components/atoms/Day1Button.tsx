@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, type PressableProps, type ViewStyle } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
-import { Radius, Spacing } from '@/constants/theme';
+import { MinTouchTarget, Radius, Spacing } from '@/constants/theme';
+import { Day1Icon, type Day1IconName } from './Day1Icon';
 import { Day1Text } from './Day1Text';
 
 export type Day1ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'ghost';
@@ -9,11 +10,20 @@ export type Day1ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'ghost
 type Day1ButtonProps = Omit<PressableProps, 'style'> & {
   label: string;
   variant?: Day1ButtonVariant;
+  icon?: Day1IconName;
   style?: ViewStyle;
   textColor?: string;
 };
 
-export function Day1Button({ label, variant = 'primary', disabled, style, textColor: textColorOverride, ...rest }: Day1ButtonProps) {
+export function Day1Button({
+  label,
+  variant = 'primary',
+  icon,
+  disabled,
+  style,
+  textColor: textColorOverride,
+  ...rest
+}: Day1ButtonProps) {
   const colors = useTheme();
 
   const backgroundColor = (pressed: boolean) => {
@@ -34,6 +44,9 @@ export function Day1Button({ label, variant = 'primary', disabled, style, textCo
   return (
     <Pressable
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       style={({ pressed }) => [
         styles.base,
         { backgroundColor: backgroundColor(pressed) },
@@ -41,6 +54,7 @@ export function Day1Button({ label, variant = 'primary', disabled, style, textCo
         style,
       ]}
       {...rest}>
+      {icon ? <Day1Icon name={icon} size={18} color={textColor()} /> : null}
       <Day1Text variant="bodySemiBold16" color={textColor()}>
         {label}
       </Day1Text>
@@ -54,6 +68,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing[8],
+    minHeight: MinTouchTarget,
     paddingHorizontal: Spacing[16],
     paddingVertical: Spacing[12],
     borderRadius: Radius[14],

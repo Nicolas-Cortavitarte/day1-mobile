@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 import { Radius, Spacing } from '@/constants/theme';
+import { Day1Icon } from '../atoms/Day1Icon';
 import { Day1Text } from '../atoms/Day1Text';
 
 type Day1InlineNoticeProps = {
@@ -16,10 +17,8 @@ export function Day1InlineNotice({ message, title, compact }: Day1InlineNoticePr
 
   if (compact) {
     return (
-      <View style={styles.compactRow}>
-        <Day1Text variant="labelMedium14" color={colors.statusError}>
-          ⚠️
-        </Day1Text>
+      <View style={styles.compactRow} accessibilityRole="alert">
+        <Day1Icon name="alert" size={16} color={colors.statusError} />
         <Day1Text variant="labelRegular13" color={colors.statusError} style={styles.compactText}>
           {message}
         </Day1Text>
@@ -28,8 +27,10 @@ export function Day1InlineNotice({ message, title, compact }: Day1InlineNoticePr
   }
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.surfaceErrorSoft, borderColor: colors.statusError }]}>
-      <Day1Text variant="bodyRegular16">⚠️</Day1Text>
+    <View
+      accessibilityRole="alert"
+      style={[styles.card, { backgroundColor: colors.surfaceErrorSoft, borderColor: colors.statusError }]}>
+      <Day1Icon name="alert" size={20} color={colors.statusError} />
       <View style={styles.texts}>
         {title ? (
           <Day1Text variant="labelSemiBold14" color={colors.statusError}>

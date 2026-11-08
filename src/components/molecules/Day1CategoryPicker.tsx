@@ -1,8 +1,9 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
-import { Radius, Spacing } from '@/constants/theme';
+import { MinTouchTarget, Radius, Spacing } from '@/constants/theme';
 import type { Category } from '@/features/activities/types';
+import { Day1Icon } from '../atoms/Day1Icon';
 import { Day1Text } from '../atoms/Day1Text';
 
 type Day1CategoryPickerProps = {
@@ -22,6 +23,9 @@ export function Day1CategoryPicker({ categories, selectedCategoryId, onSelect }:
           <Pressable
             key={category.id}
             onPress={() => onSelect(category.id)}
+            accessibilityRole="radio"
+            accessibilityLabel={category.name}
+            accessibilityState={{ selected: isSelected }}
             style={[
               styles.chip,
               {
@@ -29,11 +33,7 @@ export function Day1CategoryPicker({ categories, selectedCategoryId, onSelect }:
                 borderColor: isSelected ? colors.actionPrimary : colors.borderSubtle,
               },
             ]}>
-            {isSelected ? (
-              <Day1Text variant="labelSemiBold14" color={colors.actionPressed}>
-                ✓
-              </Day1Text>
-            ) : null}
+            {isSelected ? <Day1Icon name="check" size={14} strokeWidth={3} color={colors.actionPressed} /> : null}
             <Day1Text
               variant="labelMedium14"
               color={isSelected ? colors.actionPressed : colors.textPrimary}>
@@ -52,6 +52,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing[6],
+    minHeight: MinTouchTarget,
     paddingHorizontal: Spacing[12],
     paddingVertical: Spacing[8],
     borderRadius: Radius[20],

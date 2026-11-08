@@ -17,6 +17,9 @@ export function Day1RadioRow({ label, selected, onPress, isLast }: Day1RadioRowP
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="radio"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
       style={[styles.row, !isLast && { borderBottomColor: colors.borderSubtle, borderBottomWidth: StyleSheet.hairlineWidth }]}>
       <View style={[styles.circle, { borderColor: selected ? colors.actionPrimary : colors.borderControl }]}>
         {selected ? <View style={[styles.dot, { backgroundColor: colors.actionPrimary }]} /> : null}
