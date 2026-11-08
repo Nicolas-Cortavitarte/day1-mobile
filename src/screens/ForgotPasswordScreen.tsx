@@ -55,7 +55,7 @@ export function ForgotPasswordScreen({ navigation }: Props) {
             </Day1Text>
           </View>
 
-          <Day1IconBadge glyph="✉️" />
+          <Day1IconBadge icon="mail" />
 
           <View style={[styles.card, { backgroundColor: colors.surfaceCard }]}>
             <Day1Text variant="section20">Enlace enviado</Day1Text>
@@ -101,7 +101,7 @@ export function ForgotPasswordScreen({ navigation }: Props) {
           </Day1Text>
         </View>
 
-        <Day1IconBadge glyph="🔑" />
+        <Day1IconBadge icon="key" />
 
         <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
           Escribe el correo de tu cuenta. Te enviaremos un enlace seguro para crear una nueva contraseña.

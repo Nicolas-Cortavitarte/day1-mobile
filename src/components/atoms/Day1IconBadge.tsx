@@ -2,18 +2,18 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 import { Radius } from '@/constants/theme';
-import { Day1Text } from '@/components/atoms/Day1Text';
+import { Day1Icon, type Day1IconName } from './Day1Icon';
 
 type Day1IconBadgeProps = {
-  glyph: string;
+  icon: Day1IconName;
 };
 
-export function Day1IconBadge({ glyph }: Day1IconBadgeProps) {
+export function Day1IconBadge({ icon }: Day1IconBadgeProps) {
   const colors = useTheme();
 
   return (
     <View style={[styles.badge, { backgroundColor: colors.surfaceBrandSoft }]}>
-      <Day1Text variant="display32">{glyph}</Day1Text>
+      <Day1Icon name={icon} size={44} strokeWidth={1.75} color={colors.actionPrimary} />
     </View>
   );
 }

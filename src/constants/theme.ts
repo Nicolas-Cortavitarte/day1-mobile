@@ -57,26 +57,32 @@ const FontFamily = {
   semiBold: 'System',
 } as const;
 
+const FontWeight = {
+  regular: '400',
+  medium: '500',
+  semiBold: '600',
+} as const;
+
 export const Typography = {
-  display46: { fontFamily: FontFamily.semiBold, fontSize: 46, lineHeight: 46 * 1.4 },
-  display32: { fontFamily: FontFamily.semiBold, fontSize: 32, lineHeight: 32 * 1.4 },
-  heading28: { fontFamily: FontFamily.semiBold, fontSize: 28, lineHeight: 28 * 1.4 },
-  heading26: { fontFamily: FontFamily.semiBold, fontSize: 26, lineHeight: 26 * 1.4 },
-  section24: { fontFamily: FontFamily.semiBold, fontSize: 24, lineHeight: 24 * 1.4 },
-  section20: { fontFamily: FontFamily.semiBold, fontSize: 20, lineHeight: 20 * 1.4 },
-  bodyMedium18: { fontFamily: FontFamily.medium, fontSize: 18, lineHeight: 18 * 1.4 },
-  bodySemiBold17: { fontFamily: FontFamily.semiBold, fontSize: 17, lineHeight: 17 * 1.4 },
-  bodyRegular16: { fontFamily: FontFamily.regular, fontSize: 16, lineHeight: 16 * 1.4 },
-  bodySemiBold16: { fontFamily: FontFamily.semiBold, fontSize: 16, lineHeight: 16 * 1.4 },
-  labelRegular15: { fontFamily: FontFamily.regular, fontSize: 15, lineHeight: 15 * 1.4 },
-  labelMedium14: { fontFamily: FontFamily.medium, fontSize: 14, lineHeight: 14 * 1.4 },
-  labelRegular14: { fontFamily: FontFamily.regular, fontSize: 14, lineHeight: 14 * 1.4 },
-  labelSemiBold14: { fontFamily: FontFamily.semiBold, fontSize: 14, lineHeight: 14 * 1.4 },
-  labelMedium13: { fontFamily: FontFamily.medium, fontSize: 13, lineHeight: 13 * 1.4 },
-  labelRegular13: { fontFamily: FontFamily.regular, fontSize: 13, lineHeight: 13 * 1.4 },
-  labelSemiBold12: { fontFamily: FontFamily.semiBold, fontSize: 12, lineHeight: 12 * 1.4 },
-  labelMedium12: { fontFamily: FontFamily.medium, fontSize: 12, lineHeight: 12 * 1.4 },
-  labelRegular12: { fontFamily: FontFamily.regular, fontSize: 12, lineHeight: 12 * 1.4 },
+  display46: { fontFamily: FontFamily.semiBold, fontWeight: FontWeight.semiBold, fontSize: 46, lineHeight: 46 * 1.4 },
+  display32: { fontFamily: FontFamily.semiBold, fontWeight: FontWeight.semiBold, fontSize: 32, lineHeight: 32 * 1.4 },
+  heading28: { fontFamily: FontFamily.semiBold, fontWeight: FontWeight.semiBold, fontSize: 28, lineHeight: 28 * 1.4 },
+  heading26: { fontFamily: FontFamily.semiBold, fontWeight: FontWeight.semiBold, fontSize: 26, lineHeight: 26 * 1.4 },
+  section24: { fontFamily: FontFamily.semiBold, fontWeight: FontWeight.semiBold, fontSize: 24, lineHeight: 24 * 1.4 },
+  section20: { fontFamily: FontFamily.semiBold, fontWeight: FontWeight.semiBold, fontSize: 20, lineHeight: 20 * 1.4 },
+  bodyMedium18: { fontFamily: FontFamily.medium, fontWeight: FontWeight.medium, fontSize: 18, lineHeight: 18 * 1.4 },
+  bodySemiBold17: { fontFamily: FontFamily.semiBold, fontWeight: FontWeight.semiBold, fontSize: 17, lineHeight: 17 * 1.4 },
+  bodyRegular16: { fontFamily: FontFamily.regular, fontWeight: FontWeight.regular, fontSize: 16, lineHeight: 16 * 1.4 },
+  bodySemiBold16: { fontFamily: FontFamily.semiBold, fontWeight: FontWeight.semiBold, fontSize: 16, lineHeight: 16 * 1.4 },
+  labelRegular15: { fontFamily: FontFamily.regular, fontWeight: FontWeight.regular, fontSize: 15, lineHeight: 15 * 1.4 },
+  labelMedium14: { fontFamily: FontFamily.medium, fontWeight: FontWeight.medium, fontSize: 14, lineHeight: 14 * 1.4 },
+  labelRegular14: { fontFamily: FontFamily.regular, fontWeight: FontWeight.regular, fontSize: 14, lineHeight: 14 * 1.4 },
+  labelSemiBold14: { fontFamily: FontFamily.semiBold, fontWeight: FontWeight.semiBold, fontSize: 14, lineHeight: 14 * 1.4 },
+  labelMedium13: { fontFamily: FontFamily.medium, fontWeight: FontWeight.medium, fontSize: 13, lineHeight: 13 * 1.4 },
+  labelRegular13: { fontFamily: FontFamily.regular, fontWeight: FontWeight.regular, fontSize: 13, lineHeight: 13 * 1.4 },
+  labelSemiBold12: { fontFamily: FontFamily.semiBold, fontWeight: FontWeight.semiBold, fontSize: 12, lineHeight: 12 * 1.4 },
+  labelMedium12: { fontFamily: FontFamily.medium, fontWeight: FontWeight.medium, fontSize: 12, lineHeight: 12 * 1.4 },
+  labelRegular12: { fontFamily: FontFamily.regular, fontWeight: FontWeight.regular, fontSize: 12, lineHeight: 12 * 1.4 },
 } as const;
 
 export const Spacing = {
@@ -89,3 +95,7 @@ export const Radius = {
 } as const;
 
 export const MaxContentWidth = 800;
+
+export const MinTouchTarget = 44;
+
+export const ShadowColor = '#000000';

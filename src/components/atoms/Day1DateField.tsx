@@ -3,9 +3,10 @@ import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 
 import { useTheme } from '@/hooks/use-theme';
-import { Radius, Spacing } from '@/constants/theme';
+import { MinTouchTarget, Radius, Spacing } from '@/constants/theme';
 import { Day1Text } from './Day1Text';
 import { Day1Button } from './Day1Button';
+import { Day1Icon } from './Day1Icon';
 
 type Day1DateFieldProps = {
   label: string;
@@ -60,13 +61,18 @@ export function Day1DateField({
   }
 
   const display = formatValue(value, mode);
+  const fallbackText = placeholder ?? (mode === 'date' ? 'Elegir fecha' : 'Elegir hora');
 
   return (
     <View style={[styles.field, style]}>
       <View style={styles.labelRow}>
         <Day1Text variant="labelMedium14">{label}</Day1Text>
         {value && onClear ? (
-          <Pressable onPress={onClear} hitSlop={8}>
+          <Pressable
+            onPress={onClear}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={`Quitar ${label.toLowerCase()}`}>
             <Day1Text variant="labelRegular12" color={colors.statusError}>
               Quitar
             </Day1Text>
@@ -76,6 +82,8 @@ export function Day1DateField({
 
       <Pressable
         onPress={openPicker}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${display ?? fallbackText}`}
         style={[
           styles.shell,
           {
@@ -84,9 +92,13 @@ export function Day1DateField({
           },
         ]}>
         <Day1Text variant="bodyRegular16" color={display ? colors.textPrimary : colors.textSecondaryReadable}>
-          {display ?? placeholder ?? (mode === 'date' ? 'Elegir fecha' : 'Elegir hora')}
+          {display ?? fallbackText}
         </Day1Text>
-        <Day1Text variant="bodyRegular16">{mode === 'date' ? '📅' : '🕐'}</Day1Text>
+        <Day1Icon
+          name={mode === 'date' ? 'calendar' : 'clock'}
+          size={20}
+          color={colors.textSecondaryReadable}
+        />
       </Pressable>
 
       {Platform.OS === 'ios' ? (
@@ -95,7 +107,7 @@ export function Day1DateField({
           transparent
           animationType="slide"
           onRequestClose={() => setIosPickerOpen(false)}>
-          <View style={styles.backdrop}>
+          <View style={[styles.backdrop, { backgroundColor: colors.surfaceScrim }]}>
             <View style={[styles.sheet, { backgroundColor: colors.surfaceCard }]}>
               <DateTimePicker
                 value={draftValue}
@@ -127,13 +139,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 52,
+    minHeight: MinTouchTarget + 8,
     paddingHorizontal: 14,
     paddingVertical: Spacing[12],
     borderRadius: Radius[12],
     borderWidth: 1,
   },
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
+  backdrop: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
     padding: Spacing[16],
     gap: Spacing[12],

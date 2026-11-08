@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
-import { Radius, Spacing } from '@/constants/theme';
+import { MinTouchTarget, Radius, Spacing } from '@/constants/theme';
 import { Day1RadioRow } from '../molecules/Day1RadioRow';
+import { Day1Icon } from './Day1Icon';
 import { Day1Text } from './Day1Text';
 
 const PRESETS: { label: string; minutes: number | null }[] = [
@@ -31,15 +32,20 @@ export function Day1ReminderField({ label, value, onChange }: Day1ReminderFieldP
 
       <Pressable
         onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${current.label}`}
         style={[styles.shell, { backgroundColor: colors.surfaceCard, borderColor: colors.borderControl }]}>
         <Day1Text variant="bodyRegular16" color={value === null ? colors.textSecondaryReadable : colors.textPrimary}>
           {current.label}
         </Day1Text>
-        <Day1Text variant="bodyRegular16">🔔</Day1Text>
+        <Day1Icon name="bell" size={20} color={colors.textSecondaryReadable} />
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
+        <Pressable
+          style={[styles.backdrop, { backgroundColor: colors.surfaceScrim }]}
+          onPress={() => setOpen(false)}
+          accessibilityLabel="Cerrar">
           <View style={[styles.sheet, { backgroundColor: colors.surfaceCard }]}>
             {PRESETS.map((preset, index) => (
               <Day1RadioRow
@@ -66,12 +72,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 52,
+    minHeight: MinTouchTarget + 8,
     paddingHorizontal: 14,
     paddingVertical: Spacing[12],
     borderRadius: Radius[12],
     borderWidth: 1,
   },
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
+  backdrop: { flex: 1, justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: Radius[20], borderTopRightRadius: Radius[20], paddingVertical: Spacing[8] },
 });

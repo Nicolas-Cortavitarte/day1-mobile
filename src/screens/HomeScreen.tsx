@@ -104,7 +104,7 @@ export function HomeScreen({ navigation }: Props) {
               </View>
 
               <View style={styles.emptyState}>
-                <Day1IconBadge glyph="☀️" />
+                <Day1IconBadge icon="sun" />
                 <Day1Text variant="section20" style={styles.centerText}>
                   Hoy no hay actividades
                 </Day1Text>

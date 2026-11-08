@@ -170,6 +170,6 @@ const styles = StyleSheet.create({
   rowActions: { flexDirection: 'row' },
   sectionSpacing: { marginTop: Spacing[16] },
   swatchRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing[8] },
-  swatch: { width: 36, height: 36, borderRadius: Radius[18], borderWidth: 2, padding: 0 },
+  swatch: { width: 44, height: 44, borderRadius: Radius[22], borderWidth: 2, padding: 0 },
   formActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing[8] },
 });
