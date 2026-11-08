@@ -9,6 +9,7 @@ import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/AuthProvider';
+import { isValidEmail, PASSWORD_HELPER_TEXT, validatePassword } from '@/features/auth/validation';
 import type { RootStackParamList } from '@/app/navigation-types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
@@ -24,27 +25,41 @@ export function SignUpScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
 
   async function handleSignUp() {
-    setLoading(true);
+    if (loading) return;
     setError(null);
     setNotice(null);
 
-    const { error, needsEmailConfirmation } = await signUp(email, password, displayName);
+    if (!displayName.trim()) {
+      setError('Cuéntanos tu nombre o apodo.');
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setError('Escribe un correo electrónico válido.');
+      return;
+    }
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(`Contraseña inválida. ${passwordError}`);
+      return;
+    }
+
+    setLoading(true);
+    const { error: signUpError, needsEmailConfirmation } = await signUp(email, password, displayName);
     setLoading(false);
 
-    if (error) {
-      setError(error);
+    if (signUpError) {
+      setError(signUpError);
       return;
     }
 
     if (needsEmailConfirmation) {
       setNotice('Te enviamos un correo de confirmación. Revísalo para activar tu cuenta.');
-      return;
     }
   }
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Day1Text variant="heading28">Tu día uno.</Day1Text>
           <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
@@ -58,6 +73,8 @@ export function SignUpScreen({ navigation }: Props) {
             value={displayName}
             onChangeText={setDisplayName}
             autoCapitalize="words"
+            maxLength={80}
+            textContentType="name"
             placeholder="Alex"
           />
 
@@ -66,7 +83,10 @@ export function SignUpScreen({ navigation }: Props) {
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
+            autoCorrect={false}
             keyboardType="email-address"
+            textContentType="emailAddress"
+            autoComplete="email"
             placeholder="alex@correo.com"
           />
 
@@ -76,8 +96,10 @@ export function SignUpScreen({ navigation }: Props) {
             onChangeText={setPassword}
             secureTextEntry
             autoCapitalize="none"
+            textContentType="newPassword"
+            autoComplete="new-password"
             placeholder="••••••••••••"
-            helperText="Al menos 8 caracteres, una letra y un número."
+            helperText={PASSWORD_HELPER_TEXT}
           />
         </View>
 
@@ -101,7 +123,7 @@ export function SignUpScreen({ navigation }: Props) {
           label={loading ? 'Creando cuenta...' : 'Crear cuenta'}
           variant="primary"
           onPress={handleSignUp}
-          disabled={loading || !email || !password || !displayName}
+          disabled={loading || !email || !password || !displayName.trim()}
         />
 
         <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable} style={styles.centerText}>

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,6 +8,7 @@ import { Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/AuthProvider';
 import { useProfile } from '@/features/profile/useProfile';
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/errors';
 import { useTheme } from '@/hooks/use-theme';
 import type { MainTabScreenProps } from '@/app/navigation-types';
 
@@ -16,6 +18,20 @@ export function PerfilScreen({ navigation }: Props) {
   const colors = useTheme();
   const { signOut } = useSession();
   const { profile } = useProfile();
+  const [deleting, setDeleting] = useState(false);
+
+  async function deleteAccount() {
+    setDeleting(true);
+    try {
+      await api.delete('/me');
+    } catch (err) {
+      setDeleting(false);
+      Alert.alert('No se pudo eliminar la cuenta', getErrorMessage(err, 'Inténtalo de nuevo.'));
+      return;
+    }
+
+    await signOut().catch(() => { });
+  }
 
   function confirmDeleteAccount() {
     Alert.alert(
@@ -23,18 +39,7 @@ export function PerfilScreen({ navigation }: Props) {
       'Se borrarán todas tus actividades, ejercicios y categorías. Esta acción no se puede deshacer. ¿Seguro que quieres continuar?',
       [
         { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar cuenta',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.delete('/me');
-              await signOut();
-            } catch (err) {
-              Alert.alert('Error', err instanceof Error ? err.message : 'No se pudo eliminar la cuenta.');
-            }
-          },
-        },
+        { text: 'Eliminar cuenta', style: 'destructive', onPress: deleteAccount },
       ],
     );
   }
@@ -51,8 +56,13 @@ export function PerfilScreen({ navigation }: Props) {
           <Day1Button label="Editar perfil" variant="secondary" onPress={() => navigation.navigate('EditProfile')} />
           <Day1Button label="Mis categorías" variant="secondary" onPress={() => navigation.navigate('ManageCategories')} />
           <Day1Button label="Apariencia" variant="secondary" onPress={() => navigation.navigate('Appearance')} />
-          <Day1Button label="Cerrar sesión" variant="ghost" onPress={signOut} />
-          <Day1Button label="Eliminar cuenta" variant="destructive" onPress={confirmDeleteAccount} />
+          <Day1Button label="Cerrar sesión" variant="ghost" onPress={signOut} disabled={deleting} />
+          <Day1Button
+            label={deleting ? 'Eliminando...' : 'Eliminar cuenta'}
+            variant="destructive"
+            onPress={confirmDeleteAccount}
+            disabled={deleting}
+          />
         </View>
       </View>
     </SafeAreaView>

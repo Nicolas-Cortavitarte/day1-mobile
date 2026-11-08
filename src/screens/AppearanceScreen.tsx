@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -6,7 +7,8 @@ import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Spacing } from '@/constants/theme';
 import { usePreferencesContext } from '@/features/profile/PreferencesProvider';
-import type { FontScale, ThemePreference } from '@/features/profile/types';
+import type { FontScale, PreferencesUpdate, ThemePreference } from '@/features/profile/types';
+import { getErrorMessage } from '@/lib/errors';
 import { useTheme } from '@/hooks/use-theme';
 import type { RootStackParamList } from '@/app/navigation-types';
 
@@ -27,6 +29,21 @@ const FONT_SCALE_OPTIONS: { value: FontScale; label: string }[] = [
 export function AppearanceScreen({ navigation }: Props) {
   const colors = useTheme();
   const { preferences, updatePreferences } = usePreferencesContext();
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  async function handleChange(changes: PreferencesUpdate) {
+    if (saving) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await updatePreferences(changes);
+    } catch (err) {
+      setSaveError(getErrorMessage(err, 'No se pudo guardar tu preferencia.'));
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
@@ -44,7 +61,8 @@ export function AppearanceScreen({ navigation }: Props) {
               key={option.value}
               label={option.label}
               variant={preferences?.theme === option.value ? 'primary' : 'secondary'}
-              onPress={() => updatePreferences({ theme: option.value })}
+              onPress={() => handleChange({ theme: option.value })}
+              disabled={saving}
             />
           ))}
         </View>
@@ -56,10 +74,15 @@ export function AppearanceScreen({ navigation }: Props) {
               key={option.value}
               label={option.label}
               variant={preferences?.fontScale === option.value ? 'primary' : 'secondary'}
-              onPress={() => updatePreferences({ fontScale: option.value })}
+              onPress={() => handleChange({ fontScale: option.value })}
+              disabled={saving}
             />
           ))}
         </View>
+
+        {saveError ? (
+          <Day1Text variant="labelRegular14" color={colors.statusError}>{saveError}</Day1Text>
+        ) : null}
       </View>
     </SafeAreaView>
   );
