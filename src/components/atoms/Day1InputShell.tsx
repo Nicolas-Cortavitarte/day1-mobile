@@ -5,16 +5,21 @@ import { Radius, Spacing } from '@/constants/theme';
 
 type Day1InputShellProps = {
   children: React.ReactNode;
+  focused?: boolean;
   style?: ViewStyle;
 };
 
-export function Day1InputShell({ children, style }: Day1InputShellProps) {
+export function Day1InputShell({ children, focused, style }: Day1InputShellProps) {
   const colors = useTheme();
   return (
     <View
       style={[
         styles.shell,
-        { backgroundColor: colors.surfaceCard, borderColor: colors.borderControl },
+        {
+          backgroundColor: colors.surfaceCard,
+          borderColor: focused ? colors.actionPrimary : colors.borderControl,
+          borderWidth: focused ? 2 : 1,
+        },
         style,
       ]}>
       {children}
@@ -31,7 +36,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: Spacing[12],
     borderRadius: Radius[12],
-    borderWidth: 1,
     width: '100%',
   },
 });
