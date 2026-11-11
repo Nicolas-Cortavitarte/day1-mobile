@@ -9,13 +9,14 @@ import { Day1Icon } from './Day1Icon';
 type Day1CheckboxProps = {
   checked: boolean;
   onPress: () => void;
+  disabled?: boolean;
   accessibilityLabel?: string;
 };
 
 const BOX_SIZE = 24;
 const TOUCH_MARGIN = (MinTouchTarget - BOX_SIZE) / 2;
 
-export function Day1Checkbox({ checked, onPress, accessibilityLabel }: Day1CheckboxProps) {
+export function Day1Checkbox({ checked, onPress, disabled = false, accessibilityLabel }: Day1CheckboxProps) {
   const colors = useTheme();
   const reducedMotion = useReducedMotion();
   const scale = useRef(new Animated.Value(1)).current;
@@ -49,18 +50,28 @@ export function Day1Checkbox({ checked, onPress, accessibilityLabel }: Day1Check
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={disabled ? undefined : onPress}
+      disabled={disabled}
       accessibilityRole="checkbox"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ checked }}
+      accessibilityState={{ checked, disabled }}
       style={styles.touch}>
       <Animated.View
         style={[
           styles.box,
           {
             transform: [{ scale }],
-            backgroundColor: checked ? colors.actionPrimary : 'transparent',
-            borderColor: checked ? colors.actionPrimary : colors.borderControl,
+            backgroundColor: checked
+              ? colors.actionPrimary
+              : disabled
+                ? colors.surfaceDisabled
+                : 'transparent',
+            borderColor: checked
+              ? colors.actionPrimary
+              : disabled
+                ? colors.borderSubtle
+                : colors.borderControl,
+            opacity: disabled ? 0.5 : 1,
           },
         ]}>
         {checked ? <Day1Icon name="check" size={16} strokeWidth={3} color={colors.textOnAction} /> : null}

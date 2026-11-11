@@ -18,7 +18,7 @@ export type RootStackParamList = {
   ForgotPassword: undefined;
   ResetPassword: undefined;
   Main: undefined;
-  CreateActivity: undefined;
+  CreateActivity: { initialDate?: string } | undefined;
   ActivityDetail: { activity: Activity };
   EditActivity: { activity: Activity };
   RescheduleActivity: { activity: Activity };

@@ -10,7 +10,9 @@ import {
   addDays,
   addMonths,
   endOfMonth,
+  getMonthGrid,
   getWeekDates,
+  isPastDate,
   startOfMonth,
   startOfWeek,
 } from '../src/features/activities/dateUtils';
@@ -87,7 +89,20 @@ describe('dateUtils', () => {
   it('suma días y meses respetando fin de mes', () => {
     expect(addDays('2026-04-30', 1)).toBe('2026-05-01');
     expect(addMonths('2026-01-31', 1)).toBe('2026-02-28');
+    expect(addMonths('2026-11-11', 1)).toBe('2026-12-11');
+    expect(addMonths('2026-12-11', 1)).toBe('2027-01-11');
     expect(startOfMonth('2026-02-15')).toBe('2026-02-01');
     expect(endOfMonth('2026-02-15')).toBe('2026-02-28');
+  });
+
+  it('genera la cuadrícula mensual sin desfasar meses e identifica fechas pasadas', () => {
+    const grid = getMonthGrid('2026-11-01');
+    expect(grid).toHaveLength(6);
+    const nonNullDays = grid.flat().filter((d): d is string => d !== null);
+    expect(nonNullDays).toHaveLength(30);
+    expect(nonNullDays[0]).toBe('2026-11-01');
+    expect(nonNullDays[29]).toBe('2026-11-30');
+    expect(isPastDate('2000-01-01')).toBe(true);
+    expect(isPastDate('2099-12-31')).toBe(false);
   });
 });

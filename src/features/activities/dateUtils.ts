@@ -2,16 +2,26 @@ export function todayISODate(): string {
   return toISODate(new Date());
 }
 
+export function isPastDate(dateString: string): boolean {
+  return dateString < todayISODate();
+}
+
 export function toISODate(date: Date): string {
-  const year = date.getFullYear();
+  const year = String(date.getFullYear()).padStart(4, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
 export function parseISODate(dateString: string): Date {
-  const [year, month, day] = dateString.split('-').map(Number);
-  return new Date(year, month - 1, day);
+  const parts = dateString.split('-').map(Number);
+  const year = Number.isFinite(parts[0]) ? parts[0] : new Date().getFullYear();
+  const month = Number.isFinite(parts[1]) ? parts[1] : 1;
+  const day = Number.isFinite(parts[2]) ? parts[2] : 1;
+  const parsed = new Date(0);
+  parsed.setFullYear(year, month - 1, day);
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
 }
 
 export function addDays(dateString: string, amount: number): string {
@@ -23,15 +33,21 @@ export function addDays(dateString: string, amount: number): string {
 export function addMonths(dateString: string, amount: number): string {
   const date = parseISODate(dateString);
   const day = date.getDate();
-  const target = new Date(date.getFullYear(), date.getMonth() + amount, 1);
-  const daysInTargetMonth = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
-  target.setDate(Math.min(day, daysInTargetMonth));
+  const target = new Date(0);
+  target.setFullYear(date.getFullYear(), date.getMonth() + amount, 1);
+  target.setHours(0, 0, 0, 0);
+
+  const lastDayOfTargetMonth = new Date(0);
+  lastDayOfTargetMonth.setFullYear(target.getFullYear(), target.getMonth() + 1, 0);
+  lastDayOfTargetMonth.setHours(0, 0, 0, 0);
+
+  target.setDate(Math.min(day, lastDayOfTargetMonth.getDate()));
   return toISODate(target);
 }
 
 export function startOfWeek(dateString: string): string {
   const date = parseISODate(dateString);
-  const jsDay = date.getDay(); 
+  const jsDay = date.getDay();
   const diffToMonday = jsDay === 0 ? -6 : 1 - jsDay;
   return addDays(dateString, diffToMonday);
 }
@@ -43,13 +59,20 @@ export function getWeekDates(dateString: string): string[] {
 
 export function getMonthGrid(dateString: string): (string | null)[][] {
   const date = parseISODate(dateString);
-  const firstOfMonth = toISODate(new Date(date.getFullYear(), date.getMonth(), 1));
+  const firstDayDate = new Date(0);
+  firstDayDate.setFullYear(date.getFullYear(), date.getMonth(), 1);
+  firstDayDate.setHours(0, 0, 0, 0);
+
+  const firstOfMonth = toISODate(firstDayDate);
   const firstGridDay = startOfWeek(firstOfMonth);
 
   const cells: (string | null)[] = [];
   let current = firstGridDay;
   for (let i = 0; i < 42; i++) {
-    const inMonth = parseISODate(current).getMonth() === date.getMonth();
+    const currentParsed = parseISODate(current);
+    const inMonth =
+      currentParsed.getMonth() === date.getMonth() &&
+      currentParsed.getFullYear() === date.getFullYear();
     cells.push(inMonth ? current : null);
     current = addDays(current, 1);
   }
@@ -72,8 +95,18 @@ export function dayNumber(dateString: string): number {
 }
 
 const MONTH_NAMES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ];
 
 export function monthYearLabel(dateString: string): string {
@@ -82,15 +115,21 @@ export function monthYearLabel(dateString: string): string {
 }
 
 const WEEKDAY_FULL_NAMES = [
-  'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado',
+  'Domingo',
+  'Lunes',
+  'Martes',
+  'Miércoles',
+  'Jueves',
+  'Viernes',
+  'Sábado',
 ];
 
 export function longDateLabel(dateString: string): string {
   const date = parseISODate(dateString);
   const weekday = WEEKDAY_FULL_NAMES[date.getDay()];
   const day = date.getDate();
-  const month = monthYearLabel(dateString).split(' ')[0];
-  return `${weekday}, ${day} de ${month.toLowerCase()}`;
+  const month = MONTH_NAMES[date.getMonth()].toLowerCase();
+  return `${weekday}, ${day} de ${month}`;
 }
 
 export function fullDateLabel(dateString: string): string {
@@ -100,12 +139,18 @@ export function fullDateLabel(dateString: string): string {
 
 export function startOfMonth(dateString: string): string {
   const date = parseISODate(dateString);
-  return toISODate(new Date(date.getFullYear(), date.getMonth(), 1));
+  const target = new Date(0);
+  target.setFullYear(date.getFullYear(), date.getMonth(), 1);
+  target.setHours(0, 0, 0, 0);
+  return toISODate(target);
 }
 
 export function endOfMonth(dateString: string): string {
   const date = parseISODate(dateString);
-  return toISODate(new Date(date.getFullYear(), date.getMonth() + 1, 0));
+  const target = new Date(0);
+  target.setFullYear(date.getFullYear(), date.getMonth() + 1, 0);
+  target.setHours(0, 0, 0, 0);
+  return toISODate(target);
 }
 
 export function nextWeekAnchor(dateString: string): string {

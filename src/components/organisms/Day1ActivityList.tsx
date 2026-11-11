@@ -3,8 +3,9 @@ import { FlatList, StyleSheet, View } from 'react-native';
 
 import { ANIMATIONS } from '@/assets/animations';
 import { useTheme } from '@/hooks/use-theme';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import type { Activity, Category } from '@/features/activities/types';
+import { Day1Button } from '../atoms/Day1Button';
 import { Day1Lottie } from '../atoms/Day1Lottie';
 import { Day1Text } from '../atoms/Day1Text';
 import { Day1ActivityRow } from '../molecules/Day1ActivityRow';
@@ -15,6 +16,9 @@ type Day1ActivityListProps = {
   onToggleComplete: (activity: Activity) => void;
   onPressActivity: (activity: Activity) => void;
   refreshControl?: ReactElement;
+  listHeaderComponent?: ReactElement;
+  emptyActionLabel?: string;
+  onEmptyActionPress?: () => void;
 };
 
 export function Day1ActivityList({
@@ -23,6 +27,9 @@ export function Day1ActivityList({
   onToggleComplete,
   onPressActivity,
   refreshControl,
+  listHeaderComponent,
+  emptyActionLabel,
+  onEmptyActionPress,
 }: Day1ActivityListProps) {
   const colors = useTheme();
 
@@ -32,12 +39,25 @@ export function Day1ActivityList({
       keyExtractor={(item) => item.id}
       contentContainerStyle={activities.length === 0 ? styles.emptyContainer : styles.list}
       refreshControl={refreshControl}
+      ListHeaderComponent={listHeaderComponent}
       ListEmptyComponent={
-        <View style={styles.empty}>
+        <View style={[styles.emptyCard, { backgroundColor: colors.surfaceCard, borderColor: colors.borderSubtle }]}>
           <Day1Lottie source={ANIMATIONS.emptyCalm} size={96} />
-          <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable} style={styles.centerText}>
-            No tienes actividades programadas para este día.
+          <Day1Text variant="section20" style={styles.centerText}>
+            Día despejado
           </Day1Text>
+          <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable} style={styles.centerText}>
+            No tienes actividades programadas para esta fecha.
+          </Day1Text>
+          {emptyActionLabel && onEmptyActionPress ? (
+            <Day1Button
+              label={emptyActionLabel}
+              icon="plus"
+              variant="secondary"
+              onPress={onEmptyActionPress}
+              style={styles.emptyButton}
+            />
+          ) : null}
         </View>
       }
       renderItem={({ item }) => (
@@ -53,8 +73,25 @@ export function Day1ActivityList({
 }
 
 const styles = StyleSheet.create({
-  list: { gap: Spacing[8], padding: Spacing[16] },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: Spacing[16] },
-  empty: { justifyContent: 'center', alignItems: 'center', gap: Spacing[12] },
+  list: { gap: Spacing[10], paddingHorizontal: Spacing[20], paddingTop: Spacing[8], paddingBottom: Spacing[64] },
+  emptyContainer: {
+    flexGrow: 1,
+    paddingHorizontal: Spacing[20],
+    paddingTop: Spacing[8],
+    paddingBottom: Spacing[64],
+    gap: Spacing[12],
+  },
+  emptyCard: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing[10],
+    padding: Spacing[24],
+    borderRadius: Radius[20],
+    borderWidth: 1,
+  },
+  emptyButton: {
+    width: '100%',
+    marginTop: Spacing[4],
+  },
   centerText: { textAlign: 'center' },
 });

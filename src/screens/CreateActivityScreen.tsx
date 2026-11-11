@@ -14,7 +14,7 @@ import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
 import { Day1RecurrenceEditorModal } from '@/components/molecules/Day1RecurrenceEditorModal';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Radius, Spacing } from '@/constants/theme';
-import { toISODate } from '@/features/activities/dateUtils';
+import { parseISODate, toISODate, todayISODate } from '@/features/activities/dateUtils';
 import {
   DEFAULT_RECURRENCE,
   recurrenceSummaryLabel,
@@ -35,14 +35,20 @@ function formatTime(date: Date): string {
   return `${hours}:${minutes}`;
 }
 
-export function CreateActivityScreen({ navigation }: Props) {
+export function CreateActivityScreen({ route, navigation }: Props) {
   const colors = useTheme();
   const { categories, isLoading: loadingCategories, error: categoriesError, reload: reloadCategories } =
     useCategories();
 
+  const initialDateParam = route.params?.initialDate;
+  const initialDateObj =
+    initialDateParam && initialDateParam >= todayISODate()
+      ? parseISODate(initialDateParam)
+      : new Date();
+
   const [title, setTitle] = useState('');
   const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [startDate, setStartDate] = useState<Date>(initialDateObj);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [durationMinutes, setDurationMinutes] = useState<number | null>(null);
   const [recurrence, setRecurrence] = useState<RecurrenceValue>(DEFAULT_RECURRENCE);
