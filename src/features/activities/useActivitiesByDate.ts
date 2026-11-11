@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 
 import { api } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errors';
+import { isPastDate } from './dateUtils';
 import type { Activity, Category } from './types';
 
 export function useActivitiesByDate(date: string) {
@@ -40,6 +41,14 @@ export function useActivitiesByDate(date: string) {
   }, [load]);
 
   async function toggleComplete(activity: Activity) {
+    if (isPastDate(activity.scheduledDate)) {
+      Alert.alert(
+        'Actividad pasada',
+        'No se pueden marcar ni modificar actividades de fechas pasadas. Puedes reprogramarla para hoy o una fecha futura.',
+      );
+      return;
+    }
+
     try {
       const updated = activity.completedAt
         ? await api.patch<Activity>(`/activities/${activity.id}/uncomplete`)

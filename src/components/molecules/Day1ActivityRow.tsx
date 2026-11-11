@@ -5,6 +5,7 @@ import { usePressScale } from '@/hooks/use-press-scale';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useTheme } from '@/hooks/use-theme';
 import { Radius, Spacing } from '@/constants/theme';
+import { isPastDate } from '@/features/activities/dateUtils';
 import type { Activity, Category } from '@/features/activities/types';
 import { Day1CategoryDot } from '../atoms/Day1CategoryDot';
 import { Day1Checkbox } from '../atoms/Day1Checkbox';
@@ -22,6 +23,7 @@ export function Day1ActivityRow({ activity, category, onPress, onToggleComplete 
   const colors = useTheme();
   const reducedMotion = useReducedMotion();
   const isCompleted = !!activity.completedAt;
+  const isPast = isPastDate(activity.scheduledDate);
   const { scaleStyle, onPressIn, onPressOut } = usePressScale(0.985);
   const contentOpacity = useRef(new Animated.Value(isCompleted ? 0.65 : 1)).current;
 
@@ -49,9 +51,14 @@ export function Day1ActivityRow({ activity, category, onPress, onToggleComplete 
         style={[styles.row, { backgroundColor: colors.surfaceCard, borderColor: colors.borderSubtle }]}>
         <Day1Checkbox
           checked={isCompleted}
+          disabled={isPast}
           onPress={onToggleComplete}
           accessibilityLabel={
-            isCompleted ? `Marcar ${activity.title} como pendiente` : `Completar ${activity.title}`
+            isPast
+              ? `${activity.title} corresponde a una fecha pasada`
+              : isCompleted
+                ? `Marcar ${activity.title} como pendiente`
+                : `Completar ${activity.title}`
           }
         />
         <Day1CategoryDot color={category?.color ?? colors.borderControl} />
@@ -65,6 +72,11 @@ export function Day1ActivityRow({ activity, category, onPress, onToggleComplete 
           {activity.startTime ? (
             <Day1Text variant="labelRegular13" color={colors.textSecondaryReadable}>
               {activity.startTime.slice(0, 5)}
+              {isPast && !isCompleted ? ' · Vencida' : ''}
+            </Day1Text>
+          ) : isPast && !isCompleted ? (
+            <Day1Text variant="labelRegular13" color={colors.statusError}>
+              Vencida
             </Day1Text>
           ) : null}
         </Animated.View>

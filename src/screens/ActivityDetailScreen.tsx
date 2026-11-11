@@ -11,7 +11,7 @@ import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ConfirmDeleteModal } from '@/components/molecules/Day1ConfirmDeleteModal';
 import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
 import { Radius, Spacing } from '@/constants/theme';
-import { longDateLabel, todayISODate } from '@/features/activities/dateUtils';
+import { isPastDate, longDateLabel, todayISODate } from '@/features/activities/dateUtils';
 import { recurrenceFromApi, recurrenceSummaryLabel } from '@/features/activities/recurrence';
 import { formatReminderLabel } from '@/features/activities/reminder';
 import { useCategories } from '@/features/activities/useCategories';
@@ -84,11 +84,12 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
   const category = categories.find((c) => c.id === activity.categoryId);
   const isGymActivity = category?.key === 'gym';
   const isCompleted = !!activity.completedAt;
+  const isPast = isPastDate(activity.scheduledDate);
   const status = getStatus(activity);
   const categoryPhrase = (category?.key && CATEGORY_PHRASES[category.key]) || 'Un momento para ti';
 
   async function handleToggleComplete() {
-    if (working) return;
+    if (working || isPast) return;
     setWorking(true);
     setActionError(null);
     try {
@@ -179,28 +180,47 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
           ) : null}
           <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
             {isCompleted
-              ? '¡Bien hecho! Ya diste este paso hoy.'
-              : 'Tu día sigue abierto. Puedes hacerla ahora o buscar otro momento.'}
+              ? '¡Bien hecho! Ya diste este paso.'
+              : isPast
+                ? 'Esta fecha ya pasó. No se puede marcar como completada, pero puedes reprogramarla para hoy o más adelante.'
+                : 'Tu día sigue abierto. Puedes hacerla ahora o buscar otro momento.'}
           </Day1Text>
         </View>
 
         <View style={styles.actionsSection}>
           {isGymActivity ? (
             <Day1Button
-              label="Registrar sesión"
+              label={
+                isPast && !isCompleted
+                  ? 'Sesión vencida (reprograma para registrar)'
+                  : isCompleted
+                    ? 'Ver sesión registrada'
+                    : 'Registrar sesión'
+              }
               icon="dumbbell"
               variant="primary"
+              disabled={isPast && !isCompleted}
               onPress={() =>
                 navigation.navigate('WorkoutSession', { activityId: activity.id, activityTitle: activity.title })
               }
             />
           ) : (
             <Day1Button
-              label={working ? 'Guardando...' : isCompleted ? 'Marcar como pendiente' : 'Marcar como completada'}
-              icon={isCompleted ? undefined : 'check'}
+              label={
+                working
+                  ? 'Guardando...'
+                  : isPast
+                    ? isCompleted
+                      ? 'Completada en fecha pasada'
+                      : 'No disponible en fecha pasada'
+                    : isCompleted
+                      ? 'Marcar como pendiente'
+                      : 'Marcar como completada'
+              }
+              icon={isCompleted || isPast ? undefined : 'check'}
               variant="primary"
               onPress={handleToggleComplete}
-              disabled={working}
+              disabled={working || isPast}
             />
           )}
 
