@@ -18,6 +18,7 @@ import { WorkoutSessionScreen } from '@/screens/WorkoutSessionScreen';
 import { ExerciseProgressScreen } from '@/screens/ExerciseProgressScreen';
 import { EditProfileScreen } from '@/screens/EditProfileScreen';
 import { ManageCategoriesScreen } from '@/screens/ManageCategoriesScreen';
+import { ManageExercisesScreen } from '@/screens/ManageExercisesScreen';
 import { AppearanceScreen } from '@/screens/AppearanceScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -54,6 +55,7 @@ export function AppNavigator() {
           <Stack.Screen name="ExerciseProgress" component={ExerciseProgressScreen} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           <Stack.Screen name="ManageCategories" component={ManageCategoriesScreen} />
+          <Stack.Screen name="ManageExercises" component={ManageExercisesScreen} />
           <Stack.Screen name="Appearance" component={AppearanceScreen} />
         </>
       ) : (

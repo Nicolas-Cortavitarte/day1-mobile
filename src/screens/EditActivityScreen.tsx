@@ -6,6 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1CategoryPicker } from '@/components/molecules/Day1CategoryPicker';
+import { Day1FeedbackModal } from '@/components/molecules/Day1FeedbackModal';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Spacing } from '@/constants/theme';
 import { useCategories } from '@/features/activities/useCategories';
@@ -32,6 +33,7 @@ export function EditActivityScreen({ route, navigation }: Props) {
   const [scope, setScope] = useState<EditScope>('SINGLE');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savedTitle, setSavedTitle] = useState<string | null>(null);
 
   async function handleSave() {
     if (saving) return;
@@ -69,7 +71,7 @@ export function EditActivityScreen({ route, navigation }: Props) {
       } else {
         await api.patch(`/activities/${activity.id}`, payload);
       }
-      navigation.goBack();
+      setSavedTitle(trimmedTitle);
     } catch (err) {
       setError(getErrorMessage(err, 'No se pudo guardar.'));
     } finally {
@@ -144,6 +146,18 @@ export function EditActivityScreen({ route, navigation }: Props) {
           disabled={saving || !title.trim()}
         />
       </ScrollView>
+
+      <Day1FeedbackModal
+        visible={savedTitle !== null}
+        title="Actividad actualizada"
+        message={
+          savedTitle ? `Los cambios en «${savedTitle}» quedaron guardados.` : undefined
+        }
+        onClose={() => {
+          setSavedTitle(null);
+          navigation.goBack();
+        }}
+      />
     </SafeAreaView>
   );
 }

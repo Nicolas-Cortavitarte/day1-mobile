@@ -40,5 +40,29 @@ export function useExercises() {
     return exercise;
   }
 
-  return { exercises, isLoading, error, createExercise, reload: load };
+  async function updateExercise(
+    id: string,
+    payload: { name?: string; muscleGroup?: string | null },
+  ) {
+    const updated = await api.patch<Exercise>(`/exercises/${id}`, payload);
+    setExercises((prev) =>
+      prev.map((e) => (e.id === id ? updated : e)).sort((a, b) => a.name.localeCompare(b.name)),
+    );
+    return updated;
+  }
+
+  async function deleteExercise(id: string) {
+    await api.delete(`/exercises/${id}`);
+    setExercises((prev) => prev.filter((e) => e.id !== id));
+  }
+
+  return {
+    exercises,
+    isLoading,
+    error,
+    createExercise,
+    updateExercise,
+    deleteExercise,
+    reload: load,
+  };
 }

@@ -26,6 +26,7 @@ export type RootStackParamList = {
   ExerciseProgress: { exerciseId: string; exerciseName: string };
   EditProfile: undefined;
   ManageCategories: undefined;
+  ManageExercises: undefined;
   Appearance: undefined;
 };
 

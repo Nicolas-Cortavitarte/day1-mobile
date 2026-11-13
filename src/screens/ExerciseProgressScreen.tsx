@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { ANIMATIONS } from '@/assets/animations';
 import { Day1Button } from '@/components/atoms/Day1Button';
+import { Day1ExerciseThumbnail } from '@/components/atoms/Day1ExerciseThumbnail';
 import { Day1Lottie } from '@/components/atoms/Day1Lottie';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
@@ -40,7 +41,12 @@ export function ExerciseProgressScreen({ route, navigation }: Props) {
           <Day1Button label="Volver" icon="arrowLeft" variant="ghost" onPress={() => navigation.goBack()} />
         </View>
 
-        <Day1Text variant="heading26">{exerciseName}</Day1Text>
+        <View style={styles.titleRow}>
+          <Day1ExerciseThumbnail exerciseName={exerciseName} size={48} />
+          <Day1Text variant="heading26" style={styles.flex}>
+            {exerciseName}
+          </Day1Text>
+        </View>
 
         {error ? (
           <Day1ErrorState message={error} onRetry={reload} compact />
@@ -89,6 +95,8 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   content: { padding: Spacing[20], gap: Spacing[16], paddingBottom: Spacing[40] },
   header: { flexDirection: 'row' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[12] },
+  flex: { flex: 1 },
   card: { padding: Spacing[16], borderRadius: Radius[16], borderWidth: 1, gap: Spacing[14] },
   row: { gap: Spacing[6] },
   rowHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

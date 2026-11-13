@@ -9,6 +9,7 @@ import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1Icon } from '@/components/atoms/Day1Icon';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ConfirmDeleteModal } from '@/components/molecules/Day1ConfirmDeleteModal';
+import { Day1FeedbackModal } from '@/components/molecules/Day1FeedbackModal';
 import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
 import { Radius, Spacing } from '@/constants/theme';
 import { isPastDate, longDateLabel, todayISODate } from '@/features/activities/dateUtils';
@@ -48,6 +49,7 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
   const [working, setWorking] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deletedSuccess, setDeletedSuccess] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   useFocusEffect(
@@ -111,7 +113,7 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
     try {
       await api.delete(`/activities/${activity.id}`);
       setDeleteModalVisible(false);
-      navigation.navigate('Main');
+      setDeletedSuccess(true);
     } catch (err) {
       setDeleteModalVisible(false);
       setActionError(getErrorMessage(err, 'No se pudo eliminar la actividad.'));
@@ -264,6 +266,17 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
         loading={deleting}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteModalVisible(false)}
+      />
+
+      <Day1FeedbackModal
+        visible={deletedSuccess}
+        title="Actividad eliminada"
+        message={`«${activity.title}» fue eliminada de tu calendario.`}
+        tone="delete"
+        onClose={() => {
+          setDeletedSuccess(false);
+          navigation.navigate('Main');
+        }}
       />
     </SafeAreaView>
   );
