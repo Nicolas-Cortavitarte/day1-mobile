@@ -160,3 +160,9 @@ export function nextWeekAnchor(dateString: string): string {
 export function prevWeekAnchor(dateString: string): string {
   return addDays(startOfWeek(dateString), -1);
 }
+
+export function formatTime(date: Date): string {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}

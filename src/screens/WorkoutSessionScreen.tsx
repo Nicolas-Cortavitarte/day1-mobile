@@ -14,6 +14,7 @@ import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
 import { Day1FeedbackModal } from '@/components/molecules/Day1FeedbackModal';
 import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
+import { Day1MuscleGroupChips } from '@/components/molecules/Day1MuscleGroupChips';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Day1WorkoutExerciseCard } from '@/components/organisms/Day1WorkoutExerciseCard';
 import { MinTouchTarget, Radius, Spacing } from '@/constants/theme';
@@ -261,31 +262,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
                       <Day1Text variant="labelMedium14">
                         ¿No está «{search.trim()}»? Créalo y agrégalo:
                       </Day1Text>
-                      <View style={styles.chipsRow}>
-                        {MUSCLE_GROUP_PRESETS.map((preset) => {
-                          const selected =
-                            muscleGroup.toLowerCase() === preset.label.toLowerCase();
-                          return (
-                            <Pressable
-                              key={preset.key}
-                              onPress={() => setMuscleGroup(preset.label)}
-                              style={[
-                                styles.chip,
-                                {
-                                  backgroundColor: selected
-                                    ? colors.actionPrimary
-                                    : colors.surfaceSegmented,
-                                },
-                              ]}>
-                              <Day1Text
-                                variant={selected ? 'labelSemiBold12' : 'labelRegular12'}
-                                color={selected ? colors.textOnAction : colors.textPrimary}>
-                                {preset.label}
-                              </Day1Text>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
+                      <Day1MuscleGroupChips value={muscleGroup} onChange={setMuscleGroup} compact />
                       <Day1Button
                         label={saving ? 'Guardando...' : 'Crear y agregar a la sesión'}
                         icon="plus"

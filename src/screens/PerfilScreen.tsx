@@ -10,6 +10,7 @@ import { Day1ConfirmDeleteModal } from '@/components/molecules/Day1ConfirmDelete
 import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
 import { Radius, Spacing } from '@/constants/theme';
 import { useSession } from '@/features/auth/AuthProvider';
+import { removeUserAvatarFile } from '@/features/profile/avatarStorage';
 import { useProfile } from '@/features/profile/useProfile';
 import { api } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errors';
@@ -46,6 +47,9 @@ export function PerfilScreen({ navigation }: Props) {
     }
 
     setConfirmVisible(false);
+    if (profile?.avatarUrl) {
+      removeUserAvatarFile(profile.avatarUrl).catch(() => {});
+    }
     await signOut().catch(() => {});
   }
 

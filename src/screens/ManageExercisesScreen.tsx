@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -15,6 +15,7 @@ import { Day1ConfirmDeleteModal } from '@/components/molecules/Day1ConfirmDelete
 import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
 import { Day1FeedbackModal } from '@/components/molecules/Day1FeedbackModal';
 import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
+import { Day1MuscleGroupChips } from '@/components/molecules/Day1MuscleGroupChips';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Radius, Spacing } from '@/constants/theme';
 import { useExercises } from '@/features/workouts/useExercises';
@@ -180,32 +181,7 @@ export function ManageExercisesScreen({ navigation }: Props) {
 
           <View style={styles.presetSection}>
             <Day1Text variant="labelMedium14">Grupo muscular</Day1Text>
-            <View style={styles.chipsRow}>
-              {MUSCLE_GROUP_PRESETS.map((preset) => {
-                const selected = muscleGroup.toLowerCase() === preset.label.toLowerCase();
-                return (
-                  <Pressable
-                    key={preset.key}
-                    onPress={() => setMuscleGroup(preset.label)}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected }}
-                    style={[
-                      styles.chip,
-                      {
-                        backgroundColor: selected
-                          ? colors.actionPrimary
-                          : colors.surfaceSegmented,
-                      },
-                    ]}>
-                    <Day1Text
-                      variant={selected ? 'labelSemiBold14' : 'labelRegular14'}
-                      color={selected ? colors.textOnAction : colors.textPrimary}>
-                      {preset.label}
-                    </Day1Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <Day1MuscleGroupChips value={muscleGroup} onChange={setMuscleGroup} />
           </View>
 
           {formError ? <Day1InlineNotice message={formError} /> : null}
@@ -353,16 +329,6 @@ const styles = StyleSheet.create({
   },
   presetSection: {
     gap: Spacing[8],
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing[8],
-  },
-  chip: {
-    paddingHorizontal: Spacing[12],
-    paddingVertical: Spacing[8],
-    borderRadius: Radius[20],
   },
   formActions: {
     flexDirection: 'row',

@@ -16,7 +16,7 @@ import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
 import { Day1RecurrenceEditorModal } from '@/components/molecules/Day1RecurrenceEditorModal';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Radius, Spacing } from '@/constants/theme';
-import { parseISODate, toISODate, todayISODate } from '@/features/activities/dateUtils';
+import { formatTime, parseISODate, toISODate, todayISODate } from '@/features/activities/dateUtils';
 import {
   DEFAULT_RECURRENCE,
   recurrenceSummaryLabel,
@@ -30,12 +30,6 @@ import { api } from '@/lib/api';
 import type { RootStackParamList } from '@/app/navigation-types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateActivity'>;
-
-function formatTime(date: Date): string {
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
-}
 
 export function CreateActivityScreen({ route, navigation }: Props) {
   const colors = useTheme();
