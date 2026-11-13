@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1Icon } from '@/components/atoms/Day1Icon';
+import { Day1Logo } from '@/components/atoms/Day1Logo';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Radius, ShadowColor, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -18,7 +19,7 @@ export function WelcomeScreen({ navigation }: Props) {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.brandHeader}>
-          <Day1Icon name="sprout" size={26} color={colors.actionPrimary} strokeWidth={2.2} />
+          <Day1Logo size={32} />
           <Day1Text variant="section24" color={colors.actionPressed}>
             Day1
           </Day1Text>

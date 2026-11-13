@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Day1Icon } from '@/components/atoms/Day1Icon';
+import { Day1Logo } from '@/components/atoms/Day1Logo';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
@@ -49,7 +49,7 @@ export function SplashScreen() {
 
         <Animated.View style={[styles.centerBlock, { opacity: fadeAnim }]}>
           <View style={styles.brandRow}>
-            <Day1Icon name="sprout" size={44} color={colors.actionPrimary} strokeWidth={2.2} />
+            <Day1Logo size={52} />
             <Day1Text variant="display46" color={colors.actionPressed}>
               Day1
             </Day1Text>

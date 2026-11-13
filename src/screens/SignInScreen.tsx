@@ -4,8 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
-import { Day1Icon } from '@/components/atoms/Day1Icon';
 import { Day1KeyboardScrollView } from '@/components/atoms/Day1KeyboardScrollView';
+import { Day1Logo } from '@/components/atoms/Day1Logo';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { useTheme } from '@/hooks/use-theme';
@@ -74,7 +74,7 @@ export function SignInScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.brand}>
-          <Day1Icon name="sprout" size={38} color={colors.actionPrimary} strokeWidth={2.2} />
+          <Day1Logo size={46} />
           <Day1Text variant="display46" color={colors.actionPressed}>
             Day1
           </Day1Text>
