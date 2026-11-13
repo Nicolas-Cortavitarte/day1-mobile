@@ -11,8 +11,11 @@ type AuthContextValue = {
   isLoading: boolean;
   isPasswordRecovery: boolean;
   justSignedIn: boolean;
+  oauthError: string | null;
   clearJustSignedIn: () => void;
+  clearOAuthError: () => void;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signInWithGoogle: () => Promise<{ error: string | null }>;
   signUp: (
     email: string,
     password: string,
@@ -32,18 +35,25 @@ export function useSession() {
   return value;
 }
 
-function parseRecoveryParams(url: string) {
+function parseUrlParams(url: string) {
   try {
-    const hashIndex = url.indexOf('#');
-    if (hashIndex === -1) return null;
+    const queryStart = url.indexOf('?');
+    const hashStart = url.indexOf('#');
+    const queryEnd = hashStart === -1 ? url.length : hashStart;
+    const query = queryStart !== -1 && queryStart < queryEnd ? url.slice(queryStart + 1, queryEnd) : '';
+    const fragment = hashStart !== -1 ? url.slice(hashStart + 1) : '';
 
-    const fragment = url.slice(hashIndex + 1);
-    const params = new URLSearchParams(fragment);
+    const queryParams = new URLSearchParams(query);
+    const hashParams = new URLSearchParams(fragment);
+
+    const getParam = (key: string) => queryParams.get(key) ?? hashParams.get(key);
 
     return {
-      type: params.get('type'),
-      accessToken: params.get('access_token'),
-      refreshToken: params.get('refresh_token'),
+      type: getParam('type'),
+      code: getParam('code'),
+      accessToken: getParam('access_token'),
+      refreshToken: getParam('refresh_token'),
+      errorDescription: getParam('error_description') ?? getParam('error'),
     };
   } catch {
     return null;
@@ -55,6 +65,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [justSignedIn, setJustSignedIn] = useState(false);
+  const [oauthError, setOAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -88,18 +99,60 @@ export function AuthProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     async function handleUrl(url: string | null | undefined) {
       if (!url) return;
-      const parsed = parseRecoveryParams(url);
-      if (parsed?.type !== 'recovery' || !parsed.accessToken || !parsed.refreshToken) return;
+      const parsed = parseUrlParams(url);
+      if (!parsed) return;
 
-      setIsPasswordRecovery(true);
-      try {
-        const { error } = await supabase.auth.setSession({
-          access_token: parsed.accessToken,
-          refresh_token: parsed.refreshToken,
-        });
-        if (error) setIsPasswordRecovery(false);
-      } catch {
-        setIsPasswordRecovery(false);
+      if (parsed.type === 'recovery' && parsed.accessToken && parsed.refreshToken) {
+        setIsPasswordRecovery(true);
+        try {
+          const { error } = await supabase.auth.setSession({
+            access_token: parsed.accessToken,
+            refresh_token: parsed.refreshToken,
+          });
+          if (error) setIsPasswordRecovery(false);
+        } catch {
+          setIsPasswordRecovery(false);
+        }
+        return;
+      }
+
+      if (!url.includes('auth/callback')) return;
+
+      if (parsed.errorDescription) {
+        setOAuthError(decodeURIComponent(parsed.errorDescription.replace(/\+/g, ' ')));
+        return;
+      }
+
+      if (parsed.code) {
+        try {
+          const { error } = await supabase.auth.exchangeCodeForSession(parsed.code);
+          if (error) {
+            setOAuthError(translateAuthError(error));
+          } else {
+            setOAuthError(null);
+            setJustSignedIn(true);
+          }
+        } catch {
+          setOAuthError('No se pudo completar el inicio de sesión con Google.');
+        }
+        return;
+      }
+
+      if (parsed.accessToken && parsed.refreshToken) {
+        try {
+          const { error } = await supabase.auth.setSession({
+            access_token: parsed.accessToken,
+            refresh_token: parsed.refreshToken,
+          });
+          if (error) {
+            setOAuthError(translateAuthError(error));
+          } else {
+            setOAuthError(null);
+            setJustSignedIn(true);
+          }
+        } catch {
+          setOAuthError('No se pudo completar el inicio de sesión con Google.');
+        }
       }
     }
 
@@ -117,8 +170,31 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return { error: null };
   }
 
+  async function signInWithGoogle() {
+    setOAuthError(null);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'day1://auth/callback',
+          skipBrowserRedirect: true,
+        },
+      });
+      if (error) return { error: translateAuthError(error) };
+      if (!data?.url) return { error: 'No se pudo iniciar el acceso con Google.' };
+      await Linking.openURL(data.url);
+      return { error: null };
+    } catch {
+      return { error: 'No se pudo abrir el navegador para iniciar sesión con Google.' };
+    }
+  }
+
   const clearJustSignedIn = useCallback(() => {
     setJustSignedIn(false);
+  }, []);
+
+  const clearOAuthError = useCallback(() => {
+    setOAuthError(null);
   }, []);
 
   async function signUp(email: string, password: string, displayName: string) {
@@ -165,8 +241,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
         isLoading,
         isPasswordRecovery,
         justSignedIn,
+        oauthError,
         clearJustSignedIn,
+        clearOAuthError,
         signIn,
+        signInWithGoogle,
         signUp,
         signOut,
         requestPasswordReset,

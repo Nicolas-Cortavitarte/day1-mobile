@@ -18,16 +18,20 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
 export function SignUpScreen({ navigation }: Props) {
   const colors = useTheme();
-  const { signUp } = useSession();
+  const { signUp, signInWithGoogle, oauthError, clearOAuthError } = useSession();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+
+  const visibleError = error ?? oauthError;
 
   async function handleSignUp() {
-    if (loading) return;
+    if (loading || loadingGoogle) return;
+    clearOAuthError();
     setError(null);
     setNotice(null);
 
@@ -57,6 +61,17 @@ export function SignUpScreen({ navigation }: Props) {
     if (needsEmailConfirmation) {
       setNotice('Te enviamos un correo de confirmación. Revísalo para activar tu cuenta.');
     }
+  }
+
+  async function handleGoogleSignIn() {
+    if (loading || loadingGoogle) return;
+    clearOAuthError();
+    setError(null);
+    setNotice(null);
+    setLoadingGoogle(true);
+    const { error: googleError } = await signInWithGoogle();
+    setLoadingGoogle(false);
+    if (googleError) setError(googleError);
   }
 
   return (
@@ -120,9 +135,9 @@ export function SignUpScreen({ navigation }: Props) {
           Al crear tu cuenta, aceptas los Términos de uso y la Política de privacidad. Tus planes son privados.
         </Day1Text>
 
-        {error ? (
+        {visibleError ? (
           <Day1Text variant="labelRegular14" color={colors.statusError}>
-            {error}
+            {visibleError}
           </Day1Text>
         ) : null}
 
@@ -132,12 +147,29 @@ export function SignUpScreen({ navigation }: Props) {
           </Day1Text>
         ) : null}
 
-        <Day1Button
-          label={loading ? 'Creando cuenta...' : 'Crear cuenta'}
-          variant="primary"
-          onPress={handleSignUp}
-          disabled={loading || !email || !password || !displayName.trim()}
-        />
+        <View style={styles.authActions}>
+          <Day1Button
+            label={loading ? 'Creando cuenta...' : 'Crear cuenta'}
+            variant="primary"
+            onPress={handleSignUp}
+            disabled={loading || loadingGoogle || !email || !password || !displayName.trim()}
+          />
+
+          <View style={styles.dividerRow}>
+            <View style={[styles.dividerLine, { backgroundColor: colors.borderSubtle }]} />
+            <Day1Text variant="labelRegular13" color={colors.textSecondaryReadable}>
+              o
+            </Day1Text>
+            <View style={[styles.dividerLine, { backgroundColor: colors.borderSubtle }]} />
+          </View>
+
+          <Day1Button
+            label={loadingGoogle ? 'Abriendo Google...' : 'Continuar con Google'}
+            variant="secondary"
+            onPress={handleGoogleSignIn}
+            disabled={loading || loadingGoogle}
+          />
+        </View>
 
         <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable} style={styles.centerText}>
           ¿Ya tienes cuenta?
@@ -171,6 +203,9 @@ const styles = StyleSheet.create({
   backRow: { alignItems: 'flex-start' },
   header: { gap: Spacing[12] },
   form: { gap: Spacing[20] },
+  authActions: { gap: Spacing[12] },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[12] },
+  dividerLine: { flex: 1, height: 1 },
   centerText: { textAlign: 'center' },
   brandBlock: { gap: Spacing[12], alignItems: 'center', paddingTop: Spacing[16] },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[8] },

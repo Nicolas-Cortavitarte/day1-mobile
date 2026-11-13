@@ -18,24 +18,38 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
 
 export function SignInScreen({ navigation }: Props) {
   const colors = useTheme();
-  const { signIn } = useSession();
+  const { signIn, signInWithGoogle, oauthError, clearOAuthError } = useSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+
+  const visibleError = error ?? oauthError;
 
   async function handleSignIn() {
-    if (loading) return;
+    if (loading || loadingGoogle) return;
     if (!isValidEmail(email)) {
       setError('Escribe un correo electrónico válido.');
       return;
     }
 
+    clearOAuthError();
     setLoading(true);
     setError(null);
     const { error: signInError } = await signIn(email, password);
     setLoading(false);
     if (signInError) setError(signInError);
+  }
+
+  async function handleGoogleSignIn() {
+    if (loading || loadingGoogle) return;
+    clearOAuthError();
+    setError(null);
+    setLoadingGoogle(true);
+    const { error: googleError } = await signInWithGoogle();
+    setLoadingGoogle(false);
+    if (googleError) setError(googleError);
   }
 
   return (
@@ -93,9 +107,9 @@ export function SignInScreen({ navigation }: Props) {
           />
         </View>
 
-        {error ? (
+        {visibleError ? (
           <Day1Text variant="labelRegular14" color={colors.statusError}>
-            {error}
+            {visibleError}
           </Day1Text>
         ) : null}
 
@@ -107,12 +121,29 @@ export function SignInScreen({ navigation }: Props) {
           ¿Olvidaste tu contraseña?
         </Day1Text>
 
-        <Day1Button
-          label={loading ? 'Entrando...' : 'Iniciar sesión'}
-          variant="primary"
-          onPress={handleSignIn}
-          disabled={loading || !email || !password}
-        />
+        <View style={styles.authActions}>
+          <Day1Button
+            label={loading ? 'Entrando...' : 'Iniciar sesión'}
+            variant="primary"
+            onPress={handleSignIn}
+            disabled={loading || loadingGoogle || !email || !password}
+          />
+
+          <View style={styles.dividerRow}>
+            <View style={[styles.dividerLine, { backgroundColor: colors.borderSubtle }]} />
+            <Day1Text variant="labelRegular13" color={colors.textSecondaryReadable}>
+              o
+            </Day1Text>
+            <View style={[styles.dividerLine, { backgroundColor: colors.borderSubtle }]} />
+          </View>
+
+          <Day1Button
+            label={loadingGoogle ? 'Abriendo Google...' : 'Continuar con Google'}
+            variant="secondary"
+            onPress={handleGoogleSignIn}
+            disabled={loading || loadingGoogle}
+          />
+        </View>
 
         <View style={styles.signUpBlock}>
           <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable} style={styles.centerText}>
@@ -141,6 +172,9 @@ const styles = StyleSheet.create({
   brand: { flexDirection: 'row', alignItems: 'center', gap: Spacing[10], minHeight: 72 },
   fields: { gap: Spacing[20] },
   forgotLink: { textAlign: 'right' },
+  authActions: { gap: Spacing[12] },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[12] },
+  dividerLine: { flex: 1, height: 1 },
   signUpBlock: { gap: Spacing[8] },
   centerText: { textAlign: 'center' },
 });
