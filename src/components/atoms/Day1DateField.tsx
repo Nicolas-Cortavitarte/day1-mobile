@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
@@ -23,6 +23,7 @@ type Day1DateFieldProps = {
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTE_STEPS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+const TIME_ROW_STEP = 48;
 
 function formatValue(value: Date | null, mode: 'date' | 'time') {
   if (!value) return null;
@@ -52,8 +53,10 @@ export function Day1DateField({
 }: Day1DateFieldProps) {
   const colors = useTheme();
   const [modalOpen, setModalOpen] = useState(false);
+  const hourScrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
+  const minuteScrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const [draftDateISO, setDraftDateISO] = useState(() => toISODate(value ?? new Date()));
-  const [draftHour, setDraftHour] = useState(() => (value ? value.getHours() : 9));
+  const [draftHour, setDraftHour] = useState(() => (value ? value.getHours() : 0));
   const [draftMinute, setDraftMinute] = useState(() => {
     if (!value) return 0;
     const rounded = Math.round(value.getMinutes() / 5) * 5;
@@ -71,11 +74,33 @@ export function Day1DateField({
 
   function openPicker() {
     const base = value ?? minimumDate ?? new Date();
-    setDraftDateISO(toISODate(base));
-    setDraftHour(value ? value.getHours() : 9);
+    const nextHour = value ? value.getHours() : 0;
     const rounded = value ? Math.round(value.getMinutes() / 5) * 5 : 0;
-    setDraftMinute(rounded >= 60 ? 55 : rounded);
+    const nextMinute = rounded >= 60 ? 55 : rounded;
+
+    setDraftDateISO(toISODate(base));
+    setDraftHour(nextHour);
+    setDraftMinute(nextMinute);
     setModalOpen(true);
+
+    if (mode === 'time') {
+      setTimeout(() => {
+        const hourIndex = HOURS.indexOf(nextHour);
+        if (hourIndex >= 0) {
+          hourScrollRef.current?.scrollTo({
+            y: Math.max(0, (hourIndex - 1) * TIME_ROW_STEP),
+            animated: true,
+          });
+        }
+        const minuteIndex = MINUTE_STEPS.indexOf(nextMinute);
+        if (minuteIndex >= 0) {
+          minuteScrollRef.current?.scrollTo({
+            y: Math.max(0, (minuteIndex - 1) * TIME_ROW_STEP),
+            animated: true,
+          });
+        }
+      }, 60);
+    }
   }
 
   function handleConfirm() {
@@ -195,6 +220,7 @@ export function Day1DateField({
                     Hora
                   </Day1Text>
                   <ScrollView
+                    ref={hourScrollRef}
                     style={styles.timeScroll}
                     contentContainerStyle={styles.timeGrid}
                     showsVerticalScrollIndicator={false}>
@@ -233,6 +259,7 @@ export function Day1DateField({
                     Minutos
                   </Day1Text>
                   <ScrollView
+                    ref={minuteScrollRef}
                     style={styles.timeScroll}
                     contentContainerStyle={styles.timeGrid}
                     showsVerticalScrollIndicator={false}>

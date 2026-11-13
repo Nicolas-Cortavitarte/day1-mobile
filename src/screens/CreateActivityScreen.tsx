@@ -24,7 +24,10 @@ import {
   type RecurrenceValue,
 } from '@/features/activities/recurrence';
 import { useCategories } from '@/features/activities/useCategories';
+import type { Activity } from '@/features/activities/types';
+import { usePreferencesContext } from '@/features/profile/PreferencesProvider';
 import { getErrorMessage } from '@/lib/errors';
+import { ensureNotificationPermission, scheduleActivityReminder } from '@/lib/notifications';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import type { RootStackParamList } from '@/app/navigation-types';
@@ -33,6 +36,12 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CreateActivity'>;
 
 export function CreateActivityScreen({ route, navigation }: Props) {
   const colors = useTheme();
+  const { preferences } = usePreferencesContext();
+  const notificationsEnabled = preferences?.notificationsEnabled ?? true;
+  const defaultReminderMinutes =
+    preferences?.defaultReminderMinutes !== undefined
+      ? preferences.defaultReminderMinutes
+      : 10;
   const { categories, isLoading: loadingCategories, error: categoriesError, reload: reloadCategories } =
     useCategories();
 
@@ -49,7 +58,7 @@ export function CreateActivityScreen({ route, navigation }: Props) {
   const [durationMinutes, setDurationMinutes] = useState<number | null>(null);
   const [recurrence, setRecurrence] = useState<RecurrenceValue>(DEFAULT_RECURRENCE);
   const [recurrenceModalVisible, setRecurrenceModalVisible] = useState(false);
-  const [reminderMinutes, setReminderMinutes] = useState<number | null>(10);
+  const [reminderMinutes, setReminderMinutes] = useState<number | null>(defaultReminderMinutes);
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -123,7 +132,7 @@ export function CreateActivityScreen({ route, navigation }: Props) {
           ...recurrenceToApiPayload(recurrence),
         });
       } else {
-        await api.post('/activities', {
+        const created = await api.post<Activity>('/activities', {
           categoryId,
           title: trimmedTitle,
           scheduledDate: date,
@@ -132,6 +141,16 @@ export function CreateActivityScreen({ route, navigation }: Props) {
           description: trimmedDescription,
           reminderMinutes: reminderMinutes ?? undefined,
         });
+        if (notificationsEnabled && created.reminderMinutes !== null && created.startTime) {
+          ensureNotificationPermission()
+            .then((granted) => {
+              if (granted) {
+                return scheduleActivityReminder(created, true);
+              }
+              return undefined;
+            })
+            .catch(() => {});
+        }
       }
 
       setCreatedTitle(trimmedTitle);

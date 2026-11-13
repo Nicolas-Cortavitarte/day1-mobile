@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
+import { usePreferencesContext } from '@/features/profile/PreferencesProvider';
 import { api } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errors';
+import { scheduleActivityReminder, syncActivityReminders } from '@/lib/notifications';
 import { isPastDate } from './dateUtils';
 import type { Activity, Category } from './types';
 
 export function useActivitiesByDate(date: string) {
+  const { preferences } = usePreferencesContext();
+  const notificationsEnabled = preferences?.notificationsEnabled ?? true;
   const [categories, setCategories] = useState<Category[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +29,7 @@ export function useActivitiesByDate(date: string) {
       if (currentRequest !== requestId.current) return;
       setCategories(categoriesData);
       setActivities(activitiesData);
+      syncActivityReminders(activitiesData, notificationsEnabled).catch(() => {});
     } catch (err) {
       if (currentRequest === requestId.current) {
         setError(getErrorMessage(err, 'No se pudo conectar con el servidor.'));
@@ -34,7 +39,7 @@ export function useActivitiesByDate(date: string) {
         setIsLoading(false);
       }
     }
-  }, [date]);
+  }, [date, notificationsEnabled]);
 
   useEffect(() => {
     load();
@@ -54,6 +59,7 @@ export function useActivitiesByDate(date: string) {
         ? await api.patch<Activity>(`/activities/${activity.id}/uncomplete`)
         : await api.patch<Activity>(`/activities/${activity.id}/complete`);
       setActivities((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+      scheduleActivityReminder(updated, notificationsEnabled).catch(() => {});
     } catch (err) {
       Alert.alert('No se pudo actualizar', getErrorMessage(err, 'Inténtalo de nuevo.'));
     }

@@ -28,6 +28,7 @@ export type RootStackParamList = {
   ManageCategories: undefined;
   ManageExercises: undefined;
   Appearance: undefined;
+  Notifications: undefined;
 };
 
 export type MainTabScreenProps<T extends keyof MainTabParamList> = CompositeScreenProps<
