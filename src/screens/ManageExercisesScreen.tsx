@@ -16,6 +16,7 @@ import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
 import { Day1FeedbackModal } from '@/components/molecules/Day1FeedbackModal';
 import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
 import { Day1MuscleGroupChips } from '@/components/molecules/Day1MuscleGroupChips';
+import { Day1SkeletonCardList } from '@/components/molecules/Day1SkeletonGroup';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Radius, Spacing } from '@/constants/theme';
 import { useExercises } from '@/features/workouts/useExercises';
@@ -219,9 +220,7 @@ export function ManageExercisesScreen({ navigation }: Props) {
           {error ? (
             <Day1ErrorState message={error} onRetry={reload} compact />
           ) : isLoading ? (
-            <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
-              Cargando ejercicios...
-            </Day1Text>
+            <Day1SkeletonCardList count={4} />
           ) : filteredExercises.length === 0 ? (
             <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
               No encontramos ejercicios que coincidan con tu búsqueda.

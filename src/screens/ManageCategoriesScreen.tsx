@@ -10,6 +10,7 @@ import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ConfirmDeleteModal } from '@/components/molecules/Day1ConfirmDeleteModal';
 import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
 import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
+import { Day1SkeletonCardList } from '@/components/molecules/Day1SkeletonGroup';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Spacing, Radius } from '@/constants/theme';
 import { useManageCategories } from '@/features/activities/useManageCategories';
@@ -94,9 +95,7 @@ export function ManageCategoriesScreen({ navigation }: Props) {
         {error ? (
           <Day1ErrorState message={error} onRetry={reload} compact />
         ) : isLoading ? (
-          <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
-            Cargando...
-          </Day1Text>
+          <Day1SkeletonCardList count={4} variant="simple" />
         ) : (
           <View style={[styles.listCard, { backgroundColor: colors.surfaceCard, borderColor: colors.borderSubtle }]}>
             {categories.map((category, index) => (

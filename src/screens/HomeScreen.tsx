@@ -13,6 +13,7 @@ import { Day1ActivityRow } from '@/components/molecules/Day1ActivityRow';
 import { Day1DailyProgressSummary } from '@/components/molecules/Day1DailyProgressSummary';
 import { Day1DateStrip } from '@/components/molecules/Day1DateStrip';
 import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
+import { Day1SkeletonCardList } from '@/components/molecules/Day1SkeletonGroup';
 import { Radius, Spacing } from '@/constants/theme';
 import { fullDateLabel, isPastDate, todayISODate } from '@/features/activities/dateUtils';
 import { useTodayActivities } from '@/features/activities/useTodayActivities';
@@ -90,7 +91,9 @@ export function HomeScreen({ navigation }: Props) {
 
           {activities.length > 0 ? (
             <Day1DailyProgressSummary completed={completedCount} total={activities.length} />
-          ) : !isLoading ? (
+          ) : isLoading ? (
+            <Day1SkeletonCardList count={3} />
+          ) : (
             <>
               <View style={[styles.emptyCard, { backgroundColor: colors.surfaceBrandSoft }]}>
                 <Day1Text variant="bodySemiBold16" color={colors.actionPressed}>
@@ -126,7 +129,7 @@ export function HomeScreen({ navigation }: Props) {
                 ) : null}
               </View>
             </>
-          ) : null}
+          )}
 
           {scheduled.length > 0 ? (
             <View style={styles.section}>

@@ -9,6 +9,7 @@ import { Day1Lottie } from '@/components/atoms/Day1Lottie';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
 import { Day1ProgressBar } from '@/components/molecules/Day1ProgressBar';
+import { Day1SkeletonCardList } from '@/components/molecules/Day1SkeletonGroup';
 import { Radius, Spacing } from '@/constants/theme';
 import { longDateLabel } from '@/features/activities/dateUtils';
 import { useExerciseProgress } from '@/features/workouts/useExerciseProgress';
@@ -60,9 +61,7 @@ export function ExerciseProgressScreen({ route, navigation }: Props) {
         {error ? (
           <Day1ErrorState message={error} onRetry={reload} compact />
         ) : isLoading && progress.length === 0 ? (
-          <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
-            Cargando progreso...
-          </Day1Text>
+          <Day1SkeletonCardList count={3} variant="simple" />
         ) : progress.length === 0 ? (
           <View style={styles.emptyBox}>
             <Day1Lottie source={ANIMATIONS.emptyCalm} size={96} />

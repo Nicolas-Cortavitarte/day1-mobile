@@ -98,6 +98,7 @@ export function CalendarioScreen({ navigation }: MainTabScreenProps<'Calendario'
         <Day1ActivityList
           activities={activities}
           categories={categories}
+          loading={isLoading}
           onPressActivity={(activity) => navigation.navigate('ActivityDetail', { activity })}
           onToggleComplete={toggleComplete}
           emptyActionLabel={!isPast ? 'Agendar actividad en esta fecha' : undefined}
