@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1DateField } from '@/components/atoms/Day1DateField';
 import { Day1Icon } from '@/components/atoms/Day1Icon';
+import { Day1KeyboardScrollView } from '@/components/atoms/Day1KeyboardScrollView';
 import { Day1ReminderField } from '@/components/atoms/Day1ReminderField';
 import { Day1Stepper } from '@/components/atoms/Day1Stepper';
 import { Day1Text } from '@/components/atoms/Day1Text';
@@ -150,7 +151,7 @@ export function CreateActivityScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <Day1KeyboardScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Day1Button label="Volver" icon="arrowLeft" variant="ghost" onPress={() => navigation.goBack()} />
         </View>
@@ -269,7 +270,7 @@ export function CreateActivityScreen({ route, navigation }: Props) {
           onPress={handleCreate}
           disabled={saving || !title.trim() || !categoryId}
         />
-      </ScrollView>
+      </Day1KeyboardScrollView>
 
       <Day1RecurrenceEditorModal
         visible={recurrenceModalVisible}

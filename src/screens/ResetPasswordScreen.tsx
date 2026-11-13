@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
+import { Day1KeyboardScrollView } from '@/components/atoms/Day1KeyboardScrollView';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { useTheme } from '@/hooks/use-theme';
@@ -41,7 +42,7 @@ export function ResetPasswordScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <Day1KeyboardScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Day1Text variant="heading28">Nueva contraseña</Day1Text>
           <Day1Text variant="labelRegular14" color={colors.textSecondaryReadable}>
@@ -92,7 +93,7 @@ export function ResetPasswordScreen() {
           onPress={cancelPasswordRecovery}
           disabled={loading}
         />
-      </ScrollView>
+      </Day1KeyboardScrollView>
     </SafeAreaView>
   );
 }

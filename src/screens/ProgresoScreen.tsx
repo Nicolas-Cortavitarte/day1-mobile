@@ -11,6 +11,7 @@ import {
   resolveMuscleGroupKey,
 } from '@/components/atoms/Day1ExerciseThumbnail';
 import { Day1Icon } from '@/components/atoms/Day1Icon';
+import { Day1KeyboardScrollView } from '@/components/atoms/Day1KeyboardScrollView';
 import { Day1Lottie } from '@/components/atoms/Day1Lottie';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
@@ -90,9 +91,8 @@ export function ProgresoScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView
+      <Day1KeyboardScrollView
         contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -434,7 +434,7 @@ export function ProgresoScreen({ navigation }: Props) {
             </>
           )}
         </View>
-      </ScrollView>
+      </Day1KeyboardScrollView>
     </SafeAreaView>
   );
 }

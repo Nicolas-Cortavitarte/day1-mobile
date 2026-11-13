@@ -9,6 +9,7 @@ import {
   MUSCLE_GROUP_PRESETS,
 } from '@/components/atoms/Day1ExerciseThumbnail';
 import { Day1Icon } from '@/components/atoms/Day1Icon';
+import { Day1KeyboardScrollView } from '@/components/atoms/Day1KeyboardScrollView';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
 import { Day1FeedbackModal } from '@/components/molecules/Day1FeedbackModal';
@@ -127,9 +128,8 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView
+      <Day1KeyboardScrollView
         contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
             refreshing={isLoading && !!session}
@@ -302,7 +302,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
             </View>
           </>
         )}
-      </ScrollView>
+      </Day1KeyboardScrollView>
 
       <Day1FeedbackModal
         visible={createdExerciseName !== null}

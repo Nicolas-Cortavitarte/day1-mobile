@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -9,6 +9,7 @@ import {
   Day1ExerciseThumbnail,
   MUSCLE_GROUP_PRESETS,
 } from '@/components/atoms/Day1ExerciseThumbnail';
+import { Day1KeyboardScrollView } from '@/components/atoms/Day1KeyboardScrollView';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ConfirmDeleteModal } from '@/components/molecules/Day1ConfirmDeleteModal';
 import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
@@ -131,7 +132,7 @@ export function ManageExercisesScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <Day1KeyboardScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Day1Button
             label="Volver"
@@ -303,7 +304,7 @@ export function ManageExercisesScreen({ navigation }: Props) {
             </View>
           )}
         </View>
-      </ScrollView>
+      </Day1KeyboardScrollView>
 
       <Day1ConfirmDeleteModal
         visible={pendingDelete !== null}
