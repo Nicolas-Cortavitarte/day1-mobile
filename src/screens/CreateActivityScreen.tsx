@@ -10,6 +10,7 @@ import { Day1ReminderField } from '@/components/atoms/Day1ReminderField';
 import { Day1Stepper } from '@/components/atoms/Day1Stepper';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1CategoryPicker } from '@/components/molecules/Day1CategoryPicker';
+import { Day1FeedbackModal } from '@/components/molecules/Day1FeedbackModal';
 import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
 import { Day1RecurrenceEditorModal } from '@/components/molecules/Day1RecurrenceEditorModal';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
@@ -57,6 +58,7 @@ export function CreateActivityScreen({ route, navigation }: Props) {
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [createdTitle, setCreatedTitle] = useState<string | null>(null);
   const hasFailedOnce = useRef(false);
 
   function handleChangeStartTime(nextTime: Date) {
@@ -137,7 +139,7 @@ export function CreateActivityScreen({ route, navigation }: Props) {
         });
       }
 
-      navigation.goBack();
+      setCreatedTitle(trimmedTitle);
     } catch (err) {
       hasFailedOnce.current = true;
       setError(getErrorMessage(err, 'No se pudo crear la actividad.'));
@@ -280,6 +282,18 @@ export function CreateActivityScreen({ route, navigation }: Props) {
           setRecurrenceModalVisible(false);
         }}
         onClose={() => setRecurrenceModalVisible(false)}
+      />
+
+      <Day1FeedbackModal
+        visible={createdTitle !== null}
+        title="¡Actividad creada!"
+        message={
+          createdTitle ? `«${createdTitle}» ya está agendada en tu plan.` : undefined
+        }
+        onClose={() => {
+          setCreatedTitle(null);
+          navigation.goBack();
+        }}
       />
     </SafeAreaView>
   );

@@ -53,6 +53,7 @@ export function PerfilScreen({ navigation }: Props) {
   const menuItems: MenuItem[] = [
     { label: 'Editar perfil', icon: 'user', onPress: () => navigation.navigate('EditProfile') },
     { label: 'Mis categorías', icon: 'tag', onPress: () => navigation.navigate('ManageCategories') },
+    { label: 'Mis ejercicios', icon: 'dumbbell', onPress: () => navigation.navigate('ManageExercises') },
     { label: 'Apariencia', icon: 'palette', onPress: () => navigation.navigate('Appearance') },
   ];
 
