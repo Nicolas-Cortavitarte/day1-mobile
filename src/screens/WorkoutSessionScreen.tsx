@@ -15,6 +15,7 @@ import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
 import { Day1FeedbackModal } from '@/components/molecules/Day1FeedbackModal';
 import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
 import { Day1MuscleGroupChips } from '@/components/molecules/Day1MuscleGroupChips';
+import { Day1SkeletonCardList } from '@/components/molecules/Day1SkeletonGroup';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Day1WorkoutExerciseCard } from '@/components/organisms/Day1WorkoutExerciseCard';
 import { MinTouchTarget, Radius, Spacing } from '@/constants/theme';
@@ -152,9 +153,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
         {error && !session ? (
           <Day1ErrorState message={error} onRetry={reload} compact />
         ) : isLoading && !session ? (
-          <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
-            Cargando sesión...
-          </Day1Text>
+          <Day1SkeletonCardList count={3} />
         ) : (
           <>
             {session?.exercises.map((exercise) => (

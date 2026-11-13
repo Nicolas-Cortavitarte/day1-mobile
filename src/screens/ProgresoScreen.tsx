@@ -16,6 +16,7 @@ import { Day1Lottie } from '@/components/atoms/Day1Lottie';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
 import { Day1ProgressBar } from '@/components/molecules/Day1ProgressBar';
+import { Day1SkeletonCardList, Day1SkeletonStatsGrid } from '@/components/molecules/Day1SkeletonGroup';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Spacing, Radius } from '@/constants/theme';
 import { longDateLabel } from '@/features/activities/dateUtils';
@@ -41,7 +42,12 @@ export function ProgresoScreen({ navigation }: Props) {
     useActivityStats();
   const { history, isLoading: loadingHistory, error: historyError, reload: reloadHistory } =
     useWorkoutHistory();
-  const { exercises, error: exercisesError, reload: reloadExercises } = useExercises();
+  const {
+    exercises,
+    isLoading: loadingExercises,
+    error: exercisesError,
+    reload: reloadExercises,
+  } = useExercises();
 
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string | null>(null);
@@ -108,9 +114,7 @@ export function ProgresoScreen({ navigation }: Props) {
           {statsError && !stats ? (
             <Day1ErrorState message={statsError} onRetry={reloadStats} compact />
           ) : !stats ? (
-            <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
-              Cargando estadísticas...
-            </Day1Text>
+            <Day1SkeletonStatsGrid />
           ) : (
             <>
               <View style={styles.statsGrid}>
@@ -248,9 +252,7 @@ export function ProgresoScreen({ navigation }: Props) {
           {historyError && history.length === 0 ? (
             <Day1ErrorState message={historyError} onRetry={reloadHistory} compact />
           ) : loadingHistory && history.length === 0 ? (
-            <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
-              Cargando historial...
-            </Day1Text>
+            <Day1SkeletonCardList count={3} variant="simple" />
           ) : history.length === 0 ? (
             <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
               Aún no registras sesiones de gimnasio.
@@ -309,6 +311,8 @@ export function ProgresoScreen({ navigation }: Props) {
 
           {exercisesError && exercises.length === 0 ? (
             <Day1ErrorState message={exercisesError} onRetry={reloadExercises} compact />
+          ) : loadingExercises && exercises.length === 0 ? (
+            <Day1SkeletonCardList count={3} />
           ) : exercises.length === 0 ? (
             <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
               Cuando agregues ejercicios a una sesión, aparecerán aquí.
