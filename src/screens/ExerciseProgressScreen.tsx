@@ -17,14 +17,23 @@ import type { RootStackParamList } from '@/app/navigation-types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ExerciseProgress'>;
 
+const LB_TO_KG = 0.45359237;
+
+function weightInKg(value: number | null, unit: 'KG' | 'LB' | null): number {
+  if (value == null) return 0;
+  return unit === 'LB' ? value * LB_TO_KG : value;
+}
+
 export function ExerciseProgressScreen({ route, navigation }: Props) {
   const colors = useTheme();
   const { exerciseId, exerciseName } = route.params;
   const { progress, isLoading, error, reload } = useExerciseProgress(exerciseId);
 
-  const maxWeight = Math.max(0, ...progress.map((p) => p.bestWeightValue ?? 0));
+  const maxWeightKg = Math.max(0, ...progress.map((p) => weightInKg(p.bestWeightValue, p.weightUnit)));
   const maxReps = Math.max(0, ...progress.map((p) => p.reps ?? 0));
-  const useWeightBar = maxWeight > 0;
+  const maxDuration = Math.max(0, ...progress.map((p) => p.durationSeconds ?? 0));
+  const metric: 'weight' | 'reps' | 'duration' =
+    maxWeightKg > 0 ? 'weight' : maxReps > 0 ? 'reps' : 'duration';
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
@@ -64,13 +73,22 @@ export function ExerciseProgressScreen({ route, navigation }: Props) {
         ) : (
           <View style={[styles.card, { backgroundColor: colors.surfaceCard, borderColor: colors.borderSubtle }]}>
             {[...progress].reverse().map((point) => {
-              const barBasis = useWeightBar ? maxWeight : maxReps;
-              const barValue = useWeightBar ? (point.bestWeightValue ?? 0) : (point.reps ?? 0);
+              const barBasis =
+                metric === 'weight' ? maxWeightKg : metric === 'reps' ? maxReps : maxDuration;
+              const barValue =
+                metric === 'weight'
+                  ? weightInKg(point.bestWeightValue, point.weightUnit)
+                  : metric === 'reps'
+                    ? (point.reps ?? 0)
+                    : (point.durationSeconds ?? 0);
               const barPercent = barBasis > 0 ? (barValue / barBasis) * 100 : 0;
 
-              const valueLabel = useWeightBar
-                ? `${point.bestWeightValue ?? 0} ${point.weightUnit ?? ''}`.trim()
-                : `${point.reps ?? 0} reps`;
+              const valueLabel =
+                metric === 'weight'
+                  ? `${point.bestWeightValue ?? 0} ${point.weightUnit ?? ''}`.trim()
+                  : metric === 'reps'
+                    ? `${point.reps ?? 0} reps`
+                    : `${point.durationSeconds ?? 0} s`;
 
               return (
                 <View key={point.sessionId} style={styles.row}>

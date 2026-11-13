@@ -10,7 +10,7 @@ import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
 import { Radius, Spacing } from '@/constants/theme';
 import { checkActivityConflicts } from '@/features/activities/checkConflicts';
-import { longDateLabel, parseISODate, todayISODate, toISODate } from '@/features/activities/dateUtils';
+import { formatTime, longDateLabel, parseISODate, todayISODate, toISODate } from '@/features/activities/dateUtils';
 import { getErrorMessage } from '@/lib/errors';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
@@ -27,12 +27,6 @@ function parseTimeToDate(timeString: string | null): Date | null {
   const date = new Date();
   date.setHours(hours, minutes, 0, 0);
   return date;
-}
-
-function formatTime(date: Date): string {
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
 }
 
 export function RescheduleActivityScreen({ route, navigation }: Props) {

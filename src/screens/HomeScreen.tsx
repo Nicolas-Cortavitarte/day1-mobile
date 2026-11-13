@@ -14,7 +14,7 @@ import { Day1DailyProgressSummary } from '@/components/molecules/Day1DailyProgre
 import { Day1DateStrip } from '@/components/molecules/Day1DateStrip';
 import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
 import { Radius, Spacing } from '@/constants/theme';
-import { fullDateLabel, todayISODate } from '@/features/activities/dateUtils';
+import { fullDateLabel, isPastDate, todayISODate } from '@/features/activities/dateUtils';
 import { useTodayActivities } from '@/features/activities/useTodayActivities';
 import { useSession } from '@/features/auth/AuthProvider';
 import { useProfile } from '@/features/profile/useProfile';
@@ -52,6 +52,8 @@ export function HomeScreen({ navigation }: Props) {
   const anytime = activities.filter((a) => !a.startTime);
   const completedCount = activities.filter((a) => a.completedAt).length;
   const firstName = profile?.displayName?.split(' ')[0] ?? '';
+  const isToday = selectedDate === todayISODate();
+  const isPast = isPastDate(selectedDate);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
@@ -102,18 +104,26 @@ export function HomeScreen({ navigation }: Props) {
               <View style={styles.emptyState}>
                 <Day1Lottie source={ANIMATIONS.emptyCalm} size={110} />
                 <Day1Text variant="section20" style={styles.centerText}>
-                  Hoy no hay actividades
+                  {isToday
+                    ? 'Hoy no hay actividades'
+                    : isPast
+                      ? 'Sin actividades registradas'
+                      : 'Sin planes agendados'}
                 </Day1Text>
                 <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable} style={styles.centerText}>
-                  Puedes añadir un plan si lo necesitas. Descansar también está bien.
+                  {isPast
+                    ? 'No hay registros guardados para este día.'
+                    : 'Puedes añadir un plan si lo necesitas. Descansar también está bien.'}
                 </Day1Text>
-                <Day1Button
-                  label="Añadir actividad"
-                  icon="plus"
-                  variant="primary"
-                  onPress={() => navigation.navigate('CreateActivity')}
-                  style={styles.emptyButton}
-                />
+                {!isPast ? (
+                  <Day1Button
+                    label="Añadir actividad"
+                    icon="plus"
+                    variant="primary"
+                    onPress={() => navigation.navigate('CreateActivity', { initialDate: selectedDate })}
+                    style={styles.emptyButton}
+                  />
+                ) : null}
               </View>
             </>
           ) : null}
@@ -160,7 +170,11 @@ export function HomeScreen({ navigation }: Props) {
         </ScrollView>
       )}
 
-      <Day1FloatingActionButton onPress={() => navigation.navigate('CreateActivity')} />
+      {!isPast ? (
+        <Day1FloatingActionButton
+          onPress={() => navigation.navigate('CreateActivity', { initialDate: selectedDate })}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

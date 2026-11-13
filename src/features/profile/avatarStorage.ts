@@ -53,14 +53,12 @@ type UploadUserAvatarParams = {
   userId: string;
   base64: string;
   mimeType?: string | null;
-  previousUrl?: string | null;
 };
 
 export async function uploadUserAvatar({
   userId,
   base64,
   mimeType,
-  previousUrl,
 }: UploadUserAvatarParams): Promise<string> {
   const ext = getExtensionFromMimeType(mimeType);
   const contentType = mimeType || 'image/jpeg';
@@ -79,10 +77,6 @@ export async function uploadUserAvatar({
   const { data } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(filePath);
   if (!data?.publicUrl) {
     throw new Error('No se pudo obtener la URL pública de la foto.');
-  }
-
-  if (previousUrl && previousUrl !== data.publicUrl) {
-    removeUserAvatarFile(previousUrl).catch(() => {});
   }
 
   return data.publicUrl;

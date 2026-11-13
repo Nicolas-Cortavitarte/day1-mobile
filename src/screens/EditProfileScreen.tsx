@@ -90,35 +90,42 @@ export function EditProfileScreen({ navigation }: Props) {
 
     const trimmedName = displayName.trim();
     const userId = session?.user.id ?? profile?.id;
+    const previousAvatarUrl = profile?.avatarUrl ?? null;
 
     setSaving(true);
     setSaveError(null);
+    let uploadedAvatarUrl: string | null = null;
     try {
-      let nextAvatarUrl: string | null = profile?.avatarUrl ?? null;
+      let nextAvatarUrl: string | null = previousAvatarUrl;
 
       if (avatarRemoved) {
-        if (profile?.avatarUrl) {
-          removeUserAvatarFile(profile.avatarUrl).catch(() => {});
-        }
         nextAvatarUrl = null;
       } else if (pendingAvatar) {
         if (!userId) {
           throw new Error('No se encontró la sesión del usuario.');
         }
-        nextAvatarUrl = await uploadUserAvatar({
+        uploadedAvatarUrl = await uploadUserAvatar({
           userId,
           base64: pendingAvatar.base64,
           mimeType: pendingAvatar.mimeType,
-          previousUrl: profile?.avatarUrl,
         });
+        nextAvatarUrl = uploadedAvatarUrl;
       }
 
       await updateProfile({
         displayName: trimmedName || null,
         avatarUrl: nextAvatarUrl,
       });
+
+      if (previousAvatarUrl && previousAvatarUrl !== nextAvatarUrl) {
+        removeUserAvatarFile(previousAvatarUrl).catch(() => {});
+      }
+
       navigation.goBack();
     } catch (err) {
+      if (uploadedAvatarUrl) {
+        removeUserAvatarFile(uploadedAvatarUrl).catch(() => {});
+      }
       setSaveError(getErrorMessage(err, 'No se pudo guardar.'));
     } finally {
       setSaving(false);
