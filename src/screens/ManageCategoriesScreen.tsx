@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1CategoryDot } from '@/components/atoms/Day1CategoryDot';
+import { Day1KeyboardScrollView } from '@/components/atoms/Day1KeyboardScrollView';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1ConfirmDeleteModal } from '@/components/molecules/Day1ConfirmDeleteModal';
 import { Day1ErrorState } from '@/components/molecules/Day1ErrorState';
@@ -83,7 +84,7 @@ export function ManageCategoriesScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <Day1KeyboardScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Day1Button label="Volver" icon="arrowLeft" variant="ghost" onPress={() => navigation.goBack()} />
         </View>
@@ -182,7 +183,7 @@ export function ManageCategoriesScreen({ navigation }: Props) {
             />
           </View>
         </View>
-      </ScrollView>
+      </Day1KeyboardScrollView>
 
       <Day1ConfirmDeleteModal
         visible={pendingDelete !== null}

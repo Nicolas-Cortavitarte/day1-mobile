@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1Icon } from '@/components/atoms/Day1Icon';
+import { Day1KeyboardScrollView } from '@/components/atoms/Day1KeyboardScrollView';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { useTheme } from '@/hooks/use-theme';
@@ -39,7 +40,7 @@ export function SignInScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <Day1KeyboardScrollView contentContainerStyle={styles.content}>
         {navigation.canGoBack() ? (
           <View style={styles.backRow}>
             <Day1Button
@@ -127,7 +128,7 @@ export function SignInScreen({ navigation }: Props) {
         <Day1Text variant="labelRegular13" color={colors.textSecondaryReadable} style={styles.centerText}>
           One day or day one.
         </Day1Text>
-      </ScrollView>
+      </Day1KeyboardScrollView>
     </SafeAreaView>
   );
 }

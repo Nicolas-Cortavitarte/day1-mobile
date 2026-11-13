@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Day1Button } from '@/components/atoms/Day1Button';
+import { Day1Icon } from '@/components/atoms/Day1Icon';
+import { Day1KeyboardScrollView } from '@/components/atoms/Day1KeyboardScrollView';
+import { Day1Stepper } from '@/components/atoms/Day1Stepper';
 import { Day1Text } from '@/components/atoms/Day1Text';
 import { Day1CategoryPicker } from '@/components/molecules/Day1CategoryPicker';
 import { Day1FeedbackModal } from '@/components/molecules/Day1FeedbackModal';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useCategories } from '@/features/activities/useCategories';
 import { getErrorMessage } from '@/lib/errors';
 import { useTheme } from '@/hooks/use-theme';
@@ -27,13 +30,22 @@ export function EditActivityScreen({ route, navigation }: Props) {
   const [categoryId, setCategoryId] = useState(activity.categoryId);
   const [title, setTitle] = useState(activity.title);
   const [description, setDescription] = useState(activity.description ?? '');
-  const [durationMinutes, setDurationMinutes] = useState(
-    activity.durationMinutes ? String(activity.durationMinutes) : '',
+  const [durationMinutes, setDurationMinutes] = useState<number | null>(
+    activity.durationMinutes ?? null,
   );
   const [scope, setScope] = useState<EditScope>('SINGLE');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedTitle, setSavedTitle] = useState<string | null>(null);
+
+  function handleEnableDuration() {
+    if (!activity.startTime) {
+      setError('Esta actividad no tiene hora de inicio para definir duración.');
+      return;
+    }
+    setError(null);
+    setDurationMinutes(20);
+  }
 
   async function handleSave() {
     if (saving) return;
@@ -44,17 +56,6 @@ export function EditActivityScreen({ route, navigation }: Props) {
       return;
     }
 
-    let parsedDuration: number | null = null;
-    const trimmedDuration = durationMinutes.trim();
-    if (trimmedDuration) {
-      const num = Number(trimmedDuration);
-      if (!Number.isInteger(num) || num < 1 || num > 1440) {
-        setError('La duración debe ser un número entero entre 1 y 1440 minutos.');
-        return;
-      }
-      parsedDuration = num;
-    }
-
     setSaving(true);
     setError(null);
 
@@ -62,7 +63,7 @@ export function EditActivityScreen({ route, navigation }: Props) {
       categoryId,
       title: trimmedTitle,
       description: description.trim() || null,
-      ...(activity.startTime ? { durationMinutes: parsedDuration } : {}),
+      ...(activity.startTime ? { durationMinutes } : {}),
     };
 
     try {
@@ -81,7 +82,7 @@ export function EditActivityScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.backgroundDefault }]}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <Day1KeyboardScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Day1Button label="Cancelar" variant="ghost" onPress={() => navigation.goBack()} />
         </View>
@@ -105,13 +106,31 @@ export function EditActivityScreen({ route, navigation }: Props) {
 
         <Day1TextField label="Título" value={title} onChangeText={setTitle} maxLength={120} />
         <Day1TextField label="Descripción" value={description} onChangeText={setDescription} maxLength={1000} />
-        <Day1TextField
-          label="Duración en minutos (solo si tiene hora)"
-          value={durationMinutes}
-          onChangeText={setDurationMinutes}
-          keyboardType="number-pad"
-          editable={!!activity.startTime}
-        />
+
+        <View style={styles.block}>
+          <Day1Text variant="labelMedium14">Duración opcional</Day1Text>
+          {durationMinutes === null ? (
+            <Pressable
+              onPress={handleEnableDuration}
+              accessibilityRole="button"
+              accessibilityLabel="Definir duración"
+              style={[styles.navRow, { backgroundColor: colors.surfaceCard, borderColor: colors.borderControl }]}>
+              <Day1Text variant="bodyRegular16" color={colors.textSecondaryReadable}>
+                {activity.startTime ? 'Sin definir' : 'Solo disponible con hora de inicio'}
+              </Day1Text>
+              <Day1Icon name="timer" size={20} color={colors.textSecondaryReadable} />
+            </Pressable>
+          ) : (
+            <View style={[styles.durationRow, { backgroundColor: colors.surfaceCard, borderColor: colors.borderControl }]}>
+              <Day1Stepper value={durationMinutes} onChange={setDurationMinutes} suffix="min" min={5} max={240} step={5} />
+              <Pressable onPress={() => setDurationMinutes(null)} hitSlop={10}>
+                <Day1Text variant="labelMedium14" color={colors.statusError}>
+                  Quitar
+                </Day1Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
 
         {activity.recurrenceId ? (
           <View style={styles.block}>
@@ -145,7 +164,7 @@ export function EditActivityScreen({ route, navigation }: Props) {
           onPress={handleSave}
           disabled={saving || !title.trim()}
         />
-      </ScrollView>
+      </Day1KeyboardScrollView>
 
       <Day1FeedbackModal
         visible={savedTitle !== null}
@@ -168,5 +187,25 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row' },
   block: { gap: Spacing[8] },
   scopeRow: { flexDirection: 'row', gap: Spacing[8] },
+  navRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 52,
+    paddingHorizontal: 14,
+    paddingVertical: Spacing[12],
+    borderRadius: Radius[12],
+    borderWidth: 1,
+  },
+  durationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 52,
+    paddingHorizontal: 14,
+    paddingVertical: Spacing[12],
+    borderRadius: Radius[12],
+    borderWidth: 1,
+  },
   flex: { flex: 1 },
 });

@@ -18,7 +18,7 @@ export function Day1InputShell({ children, focused, style }: Day1InputShellProps
         {
           backgroundColor: colors.surfaceCard,
           borderColor: focused ? colors.actionPrimary : colors.borderControl,
-          borderWidth: focused ? 2 : 1,
+          borderWidth: 1.5,
         },
         style,
       ]}>
