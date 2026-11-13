@@ -16,7 +16,9 @@ import { isPastDate, longDateLabel, todayISODate } from '@/features/activities/d
 import { recurrenceFromApi, recurrenceSummaryLabel } from '@/features/activities/recurrence';
 import { formatReminderLabel } from '@/features/activities/reminder';
 import { useCategories } from '@/features/activities/useCategories';
+import { usePreferencesContext } from '@/features/profile/PreferencesProvider';
 import { getErrorMessage } from '@/lib/errors';
+import { cancelActivityReminder, scheduleActivityReminder } from '@/lib/notifications';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import type { Activity, ActivityRecurrence } from '@/features/activities/types';
@@ -43,6 +45,8 @@ function getStatus(activity: Activity): { label: string; tone: Day1BadgeTone } {
 
 export function ActivityDetailScreen({ route, navigation }: Props) {
   const colors = useTheme();
+  const { preferences } = usePreferencesContext();
+  const notificationsEnabled = preferences?.notificationsEnabled ?? true;
   const { categories } = useCategories();
   const [activity, setActivity] = useState<Activity>(route.params.activity);
   const [recurrenceLabel, setRecurrenceLabel] = useState<string>('Esta actividad se repite');
@@ -99,6 +103,7 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
         ? await api.patch<Activity>(`/activities/${activity.id}/uncomplete`)
         : await api.patch<Activity>(`/activities/${activity.id}/complete`);
       setActivity(updated);
+      scheduleActivityReminder(updated, notificationsEnabled).catch(() => {});
     } catch (err) {
       setActionError(getErrorMessage(err, 'No se pudo actualizar la actividad.'));
     } finally {
@@ -112,6 +117,7 @@ export function ActivityDetailScreen({ route, navigation }: Props) {
     setActionError(null);
     try {
       await api.delete(`/activities/${activity.id}`);
+      cancelActivityReminder(activity.id).catch(() => {});
       setDeleteModalVisible(false);
       setDeletedSuccess(true);
     } catch (err) {

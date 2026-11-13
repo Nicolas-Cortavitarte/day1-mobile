@@ -20,6 +20,7 @@ import { EditProfileScreen } from '@/screens/EditProfileScreen';
 import { ManageCategoriesScreen } from '@/screens/ManageCategoriesScreen';
 import { ManageExercisesScreen } from '@/screens/ManageExercisesScreen';
 import { AppearanceScreen } from '@/screens/AppearanceScreen';
+import { NotificationsScreen } from '@/screens/NotificationsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const MIN_SPLASH_DURATION_MS = 1400;
@@ -57,6 +58,7 @@ export function AppNavigator() {
           <Stack.Screen name="ManageCategories" component={ManageCategoriesScreen} />
           <Stack.Screen name="ManageExercises" component={ManageExercisesScreen} />
           <Stack.Screen name="Appearance" component={AppearanceScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
         </>
       ) : (
         <>

@@ -13,7 +13,10 @@ import { Day1FeedbackModal } from '@/components/molecules/Day1FeedbackModal';
 import { Day1TextField } from '@/components/molecules/Day1TextField';
 import { Radius, Spacing } from '@/constants/theme';
 import { useCategories } from '@/features/activities/useCategories';
+import type { Activity } from '@/features/activities/types';
+import { usePreferencesContext } from '@/features/profile/PreferencesProvider';
 import { getErrorMessage } from '@/lib/errors';
+import { scheduleActivityReminder } from '@/lib/notifications';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import type { RootStackParamList } from '@/app/navigation-types';
@@ -23,6 +26,7 @@ type EditScope = 'SINGLE' | 'SERIES';
 
 export function EditActivityScreen({ route, navigation }: Props) {
   const colors = useTheme();
+  const { preferences } = usePreferencesContext();
   const { activity } = route.params;
   const { categories, isLoading: loadingCategories, error: categoriesError, reload: reloadCategories } =
     useCategories();
@@ -70,7 +74,8 @@ export function EditActivityScreen({ route, navigation }: Props) {
       if (activity.recurrenceId && scope === 'SERIES') {
         await api.patch(`/activity-recurrences/${activity.recurrenceId}`, payload);
       } else {
-        await api.patch(`/activities/${activity.id}`, payload);
+        const updated = await api.patch<Activity>(`/activities/${activity.id}`, payload);
+        scheduleActivityReminder(updated, preferences?.notificationsEnabled ?? true).catch(() => {});
       }
       setSavedTitle(trimmedTitle);
     } catch (err) {

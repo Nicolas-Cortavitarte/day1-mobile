@@ -11,7 +11,10 @@ import { Day1InlineNotice } from '@/components/molecules/Day1InlineNotice';
 import { Radius, Spacing } from '@/constants/theme';
 import { checkActivityConflicts } from '@/features/activities/checkConflicts';
 import { formatTime, longDateLabel, parseISODate, todayISODate, toISODate } from '@/features/activities/dateUtils';
+import type { Activity } from '@/features/activities/types';
+import { usePreferencesContext } from '@/features/profile/PreferencesProvider';
 import { getErrorMessage } from '@/lib/errors';
+import { scheduleActivityReminder } from '@/lib/notifications';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import type { RootStackParamList } from '@/app/navigation-types';
@@ -31,6 +34,7 @@ function parseTimeToDate(timeString: string | null): Date | null {
 
 export function RescheduleActivityScreen({ route, navigation }: Props) {
   const colors = useTheme();
+  const { preferences } = usePreferencesContext();
   const { activity } = route.params;
 
   const initialDate =
@@ -72,10 +76,11 @@ export function RescheduleActivityScreen({ route, navigation }: Props) {
         }
       }
 
-      await api.patch(`/activities/${activity.id}/reschedule`, {
+      const updated = await api.patch<Activity>(`/activities/${activity.id}/reschedule`, {
         toDate: normalizedDate,
         toTime: normalizedTime || null,
       });
+      scheduleActivityReminder(updated, preferences?.notificationsEnabled ?? true).catch(() => {});
       navigation.navigate('Main');
     } catch (err) {
       setError(getErrorMessage(err, 'No se pudo reprogramar.'));
