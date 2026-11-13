@@ -24,6 +24,11 @@ export function useProfileContext() {
 export function ProfileProvider({ children }: PropsWithChildren) {
   const { session } = useSession();
   const userId = session?.user.id ?? null;
+  const metadata = session?.user.user_metadata as
+    | { full_name?: string; name?: string; display_name?: string; avatar_url?: string; picture?: string }
+    | undefined;
+  const metadataName = metadata?.display_name ?? metadata?.full_name ?? metadata?.name ?? null;
+  const metadataAvatar = metadata?.avatar_url ?? metadata?.picture ?? null;
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +49,28 @@ export function ProfileProvider({ children }: PropsWithChildren) {
     setError(null);
     try {
       const data = await api.get<UserProfile>('/me');
-      if (currentRequest === requestId.current) setProfile(data);
+      if (currentRequest !== requestId.current) return;
+
+      const patch: ProfileUpdate = {};
+      if (!data.displayName && metadataName?.trim()) {
+        patch.displayName = metadataName.trim();
+      }
+      if (!data.avatarUrl && metadataAvatar?.trim()) {
+        patch.avatarUrl = metadataAvatar.trim();
+      }
+
+      if (Object.keys(patch).length > 0) {
+        try {
+          const synced = await api.patch<UserProfile>('/me', patch);
+          if (currentRequest === requestId.current) setProfile(synced);
+          return;
+        } catch {
+          setProfile(data);
+          return;
+        }
+      }
+
+      setProfile(data);
     } catch (err) {
       if (currentRequest === requestId.current) {
         setError(getErrorMessage(err, 'No se pudo cargar el perfil.'));
@@ -52,7 +78,7 @@ export function ProfileProvider({ children }: PropsWithChildren) {
     } finally {
       if (currentRequest === requestId.current) setIsLoading(false);
     }
-  }, [userId]);
+  }, [userId, metadataName, metadataAvatar]);
 
   useEffect(() => {
     load();

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Day1Avatar } from '@/components/atoms/Day1Avatar';
 import { Day1Button } from '@/components/atoms/Day1Button';
 import { Day1Icon, type Day1IconName } from '@/components/atoms/Day1Icon';
 import { Day1Text } from '@/components/atoms/Day1Text';
@@ -30,8 +31,6 @@ export function PerfilScreen({ navigation }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  const initials = (profile?.displayName || profile?.email || 'D')[0].toUpperCase();
 
   async function deleteAccount() {
     if (deleting) return;
@@ -63,11 +62,12 @@ export function PerfilScreen({ navigation }: Props) {
         <Day1Text variant="heading26">Perfil</Day1Text>
 
         <View style={[styles.profileCard, { backgroundColor: colors.surfaceCard, borderColor: colors.borderSubtle }]}>
-          <View style={[styles.avatar, { backgroundColor: colors.surfaceBrandSoft }]}>
-            <Day1Text variant="section24" color={colors.actionPressed}>
-              {initials}
-            </Day1Text>
-          </View>
+          <Day1Avatar
+            uri={profile?.avatarUrl}
+            name={profile?.displayName}
+            email={profile?.email}
+            size={56}
+          />
           <View style={styles.profileTexts}>
             <Day1Text variant="section20">{profile?.displayName || 'Mi espacio'}</Day1Text>
             {profile?.email ? (
@@ -145,13 +145,6 @@ const styles = StyleSheet.create({
     padding: Spacing[16],
     borderRadius: Radius[16],
     borderWidth: 1,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   profileTexts: { flex: 1, gap: 2 },
   menuCard: { borderRadius: Radius[16], borderWidth: 1, overflow: 'hidden' },
